@@ -47,7 +47,8 @@ hlk__init() {
 
 create_gcloud_project() {
     # Create gcloud project associated with Hemlock project
-    echo "Creating associated gcloud project"
+    echo
+    echo "Creating gcloud project"
     project_id=`python3 $DIR/gen_id.py $project`
     gcloud projects create $project_id --name $project
     gcloud alpha billing projects link $project_id \
@@ -56,6 +57,7 @@ create_gcloud_project() {
 
 clone_hemlock_template() {
     # Clone Hemlock template and set up hemlock-venv
+    echo
     echo "Cloning Hemlock template from $HEMLOCK_TEMPLATE_URL"
     git clone $HEMLOCK_TEMPLATE_URL $project
     cd $project
@@ -68,6 +70,7 @@ clone_hemlock_template() {
 
 copy_env_files() {
     # Copy environment files to the project directory
+    echo
     echo "Copying environment files to project directory"
     mkdir env
     cd env
@@ -80,6 +83,7 @@ copy_env_files() {
 
 make_gcloud_buckets() {
     # Make gcloud project owner service account and buckets
+    echo
     echo "Making gcloud buckets"
     owner=$project-owner
     echo "  Creating service account $owner as owner of project $project_id"
@@ -100,12 +104,19 @@ make_gcloud_buckets() {
 
 export_env_variables() {
     # Export project environment variables
+    echo
     echo "Exporting environment variables"
     hlk__export FLASK_APP=app 1 0 0
     hlk__export \
         GOOGLE_APPLICATION_CREDENTIALS=env/gcp_credentials.json 1 1 0
     hlk__export BUCKET=$local_bucket 1 0 0
     hlk__export BUCKET=$bucket 0 1 0
+}
+
+hlk__install() {
+    # Install Python package
+    pip3 install -U "$@"
+    python3 $DIR/update_requirements.py "$@"
 }
 
 hlk__shell() {
@@ -123,18 +134,31 @@ hlk__run() {
 hlk__deploy() {
     # Deploy application
     app=$1
+    export `python3 $DIR/export_yaml.py env/production-env.yaml`
+    verify_current_env local
     echo "Deploying algorithm"
     create_app
     set_bucket_cors
     push_slug
-    scale
+    lite_scale
+    hlk__export CURRENT_ENV=production-lite 1 1 0
+}
+
+verify_current_env() {
+    local required_env=$1
+    if [ $CURRENT_ENV != $required_env ]; then
+        echo "Application already in production."
+        echo "  To update the current application, use 'hlk update'."
+        echo "  To deploy a new application, first destroy the current application with 'hlk destroy'."
+        exit 1
+    fi
 }
 
 create_app() {
     # Create Heroku app
+    echo
     echo "Creating application"
     heroku apps:create $app
-    export `python3 $DIR/export_yaml.py env/production-env.yaml`
     heroku config:set `python3 $DIR/export_yaml.py env/production-env.yaml`
     heroku buildpacks:add heroku/python
     heroku buildpacks:add $WKHTMLTOPDF_BUILDPACK_URL
@@ -142,6 +166,8 @@ create_app() {
 
 set_bucket_cors() {
     # Set production bucket CORS permissions
+    echo
+    echo "Setting CORS permissions for production bucket"
     origin=http://$app.herokuapp.com
     echo "Enabling bucket $BUCKET CORS permissions for origin $origin"
     python3 $DIR/create_cors.py $origin
@@ -150,6 +176,7 @@ set_bucket_cors() {
 
 push_slug() {
     # Push Heroku slug
+    echo
     echo "Pushing Heroku slug"
     git add .
     git commit -m "deploying survey"
@@ -157,75 +184,116 @@ push_slug() {
     heroku git:remote -a $app
 }
 
-scale() {
+lite_scale() {
     # Scale application for production-lite environment
+    echo
     echo "Scaling application for production-lite environment"
-    heroku addons:add heroku-redis:hobby-dev --wait
-    heroku addons:add heroku-postgresql:hobby-dev --wait
+    postgres_plan=hobby-dev
+    redis_plan=hobby-dev
+    proc_type=free
+    web_proc_scale=1
+    if [ $WORKER = 1 ]; then
+        worker_proc_scale=1
+    else
+        worker_proc_scale=0
+    fi
+    scale
+}
+
+scale() {
+    # Scale application
+    heroku addons:add heroku-postgresql:$postgres_plan
+    heroku addons:add heroku-redis:$redis_plan
+    heroku ps:type $proc_type
+    heroku ps:scale web=$web_proc_scale
+    heroku ps:scale worker=$worker_proc_scale
 }
 
 hlk__production() {
     # Convert to production environment
     # upgrade addons and scale dynos
+    export `python3 $DIR/export_yaml.py env/production-env.yaml`
+    verify_current_env production-lite
     echo "About to convert to production environment"
     echo "WARNING: This action will override the current database"
     echo "Confirm the application name below to proceed"
     echo
     heroku addons:destroy heroku-postgresql
-    heroku addons:destroy heroku-redis
-    get_heroku_args 1 "$@"    
-    scale_heroku
+    heroku addons:destroy heroku-redis  
+    production_scale
+    hlk__export CURRENT_ENV=production 1 1 0
 }
 
-get_heroku_args() {
-    # Get heroku addon plans, process types, and dyno scaling
-    production=$1
-    worker=$2
-    redis_plan="hobby-dev"
-    worker_proc_scale=0
-    if [ $production = 1 ]; then
-        mode="production"
-        postgres_plan="standard-0"
-        proc_type="standard-2x"
-        web_proc_scale=3
-        if [ $worker = 1 ]; then
-            redis_plan="premium-1"
-            worker_proc_scale=3
-        fi
+production_scale() {
+    echo
+    echo "Scaling application for production environment"
+    postgres_plan=standard-0
+    proc_type=standard-1x
+    web_proc_scale=3
+    if [ $WORKER = 1 ]; then
+        redis_plan=premium-1
+        worker_proc_scale=3
     else
-        mode="debugging"
-        postgres_plan="hobby-dev"
-        proc_type="free"
-        web_proc_scale=1
-        if [ $worker = 1 ]; then
-            worker_proc_scale=1
-        fi
+        redis_plan=hobby-dev
+        worker_proc_scale=0
     fi
-}
-
-scale_heroku() {
-    # Scale application
-    heroku addons:add heroku-postgresql:$postgres_plan --wait
-    heroku addons:add heroku-redis:$redis_plan --wait
-    heroku ps:scale web=$web_proc_scale:$proc_type
-    heroku ps:scale worker=$worker_proc_scale:$proc_type
+    scale
 }
 
 hlk__update() {
     # Update application
     echo "Updating application"
+    heroku config:set `python3 $DIR/export_yaml.py env/production-env.yaml`
     git add .
     git commit -m "update"
     git push heroku master
 }
 
+hlk__worker() {
+    # Turn worker on or off
+    worker=$1
+    export `python3 $DIR/export_yaml.py env/production-env.yaml`
+    if [ $CURRENT_ENV = local ] || [ $worker = $WORKER ]; then
+        hlk__export WORKER=$worker 1 1 0
+        exit 0
+    fi
+    modify_worker
+    hlk__export WORKER=$worker 1 1 0
+}
+
+modify_worker() {
+    # Modify worker for current application
+    if [ $worker = 1 ]; then
+        echo "Creating worker"
+        if [ $CURRENT_ENV = production ]; then
+            heroku addons:destroy heroku-redis
+            heroku addons:add heroku-redis:premium-1
+            heroku ps:scale worker=3
+        else
+            heroku ps:scale worker=1
+        fi
+    else
+        echo "Destroying worker"
+        if [ $CURRENT_ENV = production ]; then
+            heroku addons:destroy heroku-redis
+            heroku addons:add heroku-redis:hobby-dev
+        fi
+        heroku ps:scale worker=0
+    fi
+}
+
 hlk__destroy() {
     # Destroy applicaiton
-    echo "About to destroy application"
-    echo "WARNING: You will be unable to access your data through the application after this action"
-    echo "Download your data before proceeding"
+    echo "Preparing to destroy application"
     echo
+    echo "Restricting CORS permissions for production bucket"
+    export `python3 $DIR/export_yaml.py env/production-env.yaml`
+    python3 $DIR/create_cors.py ""
+    gsutil cors set cors.json gs://$BUCKET
+    echo
+    echo "Destroying application"
     heroku apps:destroy
+    hlk__export CURRENT_ENV=local 1 1 0
 }
 
 hlk() {
