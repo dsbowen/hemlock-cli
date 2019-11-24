@@ -1,0 +1,2 @@
+WKHTMLTOIMAGE: /app/bin/wkhtmltoimage
+WKHTMLTOPDF_BUILDPACK_URL: https://github.com/dsbowen/heroku-buildpack-wkhtmltopdf

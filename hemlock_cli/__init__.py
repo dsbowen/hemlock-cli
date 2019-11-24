@@ -4,10 +4,7 @@ from subprocess import call
 import click
 import os
 
-def sh_file():
-    """Return path to shell file"""
-    sh_path = os.path.dirname(os.path.abspath(__file__))
-    return sh_path+'/hlk.sh'
+SH_FILE = os.path.dirname(os.path.abspath(__file__))+'/hlk.sh'
 
 def to_str(bool_var):
     """Convert boolean to 0/1 string"""
@@ -18,26 +15,57 @@ def hlk():
     pass
 
 @click.command()
-@click.argument('path')
-def init(path):
+@click.argument('assignment')
+def config(assignment):
+    """Set a configuration variable"""
+    call(['sh', SH_FILE, 'config', assignment])
+
+@click.command()
+@click.argument('assignment')
+@click.option(
+    '--local', '-l',
+    is_flag=True,
+    help='Set local environment variable'
+)
+@click.option(
+    '--production', '-p',
+    is_flag=True,
+    help='Set production environment variable'
+)
+@click.option(
+    '--default', '-d',
+    is_flag=True,
+    help='Set default environment variable'
+)
+def export(assignment, local=False, production=False, default=False):
+    """Set environment variable"""
+    prod = production
+    if not (local or prod):
+        local = prod = True
+    local, prod, default = to_str(local), to_str(prod), to_str(default)
+    call(['sh', SH_FILE, 'export', assignment, local, prod, default])
+
+@click.command()
+@click.argument('project')
+def init(project):
     """Initialize Hemlock project"""
-    call(['sh', sh_file(), 'init', path])
+    call(['sh', SH_FILE, 'init', project])
+
+@click.command()
+def shell():
+    """Run Hemlock shell"""
+    call(['sh', SH_FILE, 'shell'])
+
+@click.command()
+def run():
+    """Run Hemlock locally"""
+    call(['sh', SH_FILE, 'run'])
 
 @click.command()
 @click.argument('app')
-@click.option(
-    '--production/--debug', default=False, 
-    help='Deploy in a production environment'
-)
-@click.option(
-    '--worker/--no-worker', default=False,
-    help='Employ background workers'
-)
-def deploy(app, production, worker):
+def deploy(app):
     """Deploy application"""
-    production = to_str(production)
-    worker = to_str(worker)
-    call(['sh', sh_file(), 'deploy', app, production, worker])
+    call(['sh', SH_FILE, 'deploy', app])
 
 @click.command()
 @click.option(
@@ -59,7 +87,11 @@ def destroy():
     """Destroy application"""
     call(['sh', sh_file(), 'destroy'])
 
+hlk.add_command(config)
+hlk.add_command(export)
 hlk.add_command(init)
+hlk.add_command(shell)
+hlk.add_command(run)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)
