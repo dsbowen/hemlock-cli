@@ -91,7 +91,7 @@ make_gcloud_buckets() {
     gcloud projects add-iam-policy-binding $project_id \
         --member "serviceAccount:$owner@$project_id.iam.gserviceaccount.com" \
         --role "roles/owner"
-    gcloud iam service-accounts keys create env/gcp_credentials.json \
+    gcloud iam service-accounts keys create env/gcp-credentials.json \
         --iam-account $owner@$project_id.iam.gserviceaccount.com
     local_bucket=`python3 $DIR/gen_id.py $project-local-bucket`
     echo "  Making local bucket $local_bucket"
@@ -108,7 +108,7 @@ export_env_variables() {
     echo "Exporting environment variables"
     hlk__export FLASK_APP=app 1 0 0
     hlk__export \
-        GOOGLE_APPLICATION_CREDENTIALS=env/gcp_credentials.json 1 1 0
+        GOOGLE_APPLICATION_CREDENTIALS=env/gcp-credentials.json 1 1 0
     hlk__export BUCKET=$local_bucket 1 0 0
     hlk__export BUCKET=$bucket 0 1 0
 }
@@ -129,6 +129,12 @@ hlk__run() {
     # Run Hemlock app locally
     export `python3 $DIR/export_yaml.py env/local-env.yaml`
     python3 app.py
+}
+
+hlk__rq() {
+    # Run Hemlock Redis Queue locally
+    export `python3 $DIR/export_yaml.py env/local-env.yaml`
+    rq worker hemlock-task-queue
 }
 
 hlk__deploy() {
@@ -161,7 +167,9 @@ create_app() {
     heroku apps:create $app
     heroku config:set `python3 $DIR/export_yaml.py env/production-env.yaml`
     heroku buildpacks:add heroku/python
-    heroku buildpacks:add $WKHTMLTOPDF_BUILDPACK_URL
+    # heroku buildpacks:add $WKHTMLTOPDF_BUILDPACK_URL
+    heroku buildpacks:add $GOOGLE_CHROME_BUILDPACK_URL
+    heroku buildpacks:add $CHROMEDRIVER_BUILDPACK_URL
 }
 
 set_bucket_cors() {
@@ -195,7 +203,7 @@ lite_scale() {
     if [ $WORKER = 1 ]; then
         worker_proc_scale=1
     else
-        worker_proc_scale=0
+        worker_proc_scale=1
     fi
     scale
 }
@@ -235,7 +243,7 @@ production_scale() {
         worker_proc_scale=3
     else
         redis_plan=hobby-dev
-        worker_proc_scale=0
+        worker_proc_scale=1
     fi
     scale
 }

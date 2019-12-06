@@ -69,6 +69,11 @@ def run():
     call(['sh', SH_FILE, 'run'])
 
 @click.command()
+def rq():
+    """Run Hemlock Redis Queue locally"""
+    call(['sh', SH_FILE, 'rq'])
+
+@click.command()
 @click.argument('app')
 def deploy(app):
     """Deploy application"""
@@ -101,6 +106,7 @@ hlk.add_command(init)
 hlk.add_command(install)
 hlk.add_command(shell)
 hlk.add_command(run)
+hlk.add_command(rq)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)
