@@ -1,0 +1,6 @@
+CHROMEDRIVER_BUILDPACK_URL: https://github.com/heroku/heroku-buildpack-chromedriver
+CHROMEDRIVER_PATH: /app/.chromedriver/bin/chromedriver
+CURRENT_ENV: local
+GOOGLE_CHROME_BUILDPACK_URL: https://github.com/heroku/heroku-buildpack-google-chrome
+GOOGLE_CHROME_PATH: /app/.apt/usr/bin/google-chrome
+WORKER: 'False'

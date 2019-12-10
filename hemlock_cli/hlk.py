@@ -1,4 +1,11 @@
-"""Hemlock command line interface"""
+"""Hemlock command line interface
+
+Commands are categorized as:
+1. Environment: modify environment variables
+2. Initialization: initialize a new Hemlock project
+3. Content: modify the project content
+4. Deploy: commands related to deployment
+"""
 
 from functools import wraps
 from subprocess import call
@@ -8,7 +15,7 @@ import os
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
 
-def set_env(func):
+def export_args(func):
     """Update environment variables with bash arguments"""
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -21,6 +28,7 @@ def set_env(func):
 def hlk():
     pass
 
+"""1. Environment"""
 @click.command()
 @click.argument('assignments', nargs=-1)
 @click.option(
@@ -39,8 +47,9 @@ def hlk():
     '--default', '-d', is_flag=True,
     help='Set default environment variable'
 )
-@set_env
+@export_args
 def export(**kwargs):
+    """Set an environment variable"""
     call(['sh', SH_FILE, 'export'])
 
 @click.command()
@@ -61,17 +70,20 @@ def export(**kwargs):
     '--default', '-d', is_flag=True,
     help='Unset default environment variable'
 )
-@set_env
+@export_args
 def unset(**kwargs):
+    """Unset an environment variable"""
     call(['sh', SH_FILE, 'unset'])
 
+"""2. Initialization"""
 @click.command()
 @click.argument('project')
-@set_env
+@export_args
 def init(project):
     """Initialize Hemlock project"""
     call(['sh', SH_FILE, 'init'])
 
+"""3. Content"""
 @click.command()
 @click.argument('pkg_names', nargs=-1)
 def install(pkg_names):
@@ -93,9 +105,10 @@ def rq():
     """Run Hemlock Redis Queue locally"""
     call(['sh', SH_FILE, 'rq'])
 
+"""4. Deploy"""
 @click.command()
 @click.argument('app')
-@set_env
+@export_args
 def deploy(app):
     """Deploy application"""
     call(['sh', SH_FILE, 'deploy'])
@@ -112,7 +125,7 @@ def production():
 
 @click.command()
 @click.option('--on/--off', default=True)
-@set_env
+@export_args
 def worker(on):
     """Turn worker on or off"""
     call(['sh', SH_FILE, 'worker'])
