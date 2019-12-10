@@ -6,9 +6,10 @@ cmd__deploy() {
     verify_current_env local
     echo "Deploying algorithm"
     create_app
+    create_addons
     set_bucket_cors
     push_slug
-    lite_scale
+    scale
     python3 $DIR/hlk.py export CURRENT_ENV=production-lite
 }
 
@@ -34,6 +35,43 @@ create_app() {
     heroku buildpacks:add $CHROMEDRIVER_BUILDPACK_URL
 }
 
+create_addons() {
+    # Create addons
+    echo
+    echo "Creating postgres and redis addons"
+    if [ $CURRENT_ENV = local ]; then
+        postgres_plan=hobby-dev redis_plan=hobby-dev
+    else
+        postgres_plan=$POSTGRES_PRODUCTION_PLAN
+        if [ $WORKER = True ]; then
+            redis_plan=$REDIS_PRODUCTION_PLAN
+        else
+            redis_plan=hobby-dev
+        fi
+    fi
+    heroku addons:add heroku-postgresql:$postgres_plan
+    heroku addons:add heroku-redis:$redis_plan
+}
+
+scale() {
+    # Create addons and scale
+    echo
+    echo "Scaling worker and web processes"
+    if [ $CURRENT_ENV = local ]; then
+        proc_type=free web_proc_scale=1 worker_proc_scale=1
+    else
+        proc_type=$PROCTYPE_PRODUCTION web_proc_scale=$WEB_PRODUCTION_SCALE
+        if [ $WORKER = True ]; then
+            worker_proc_scale=$WORKER_PRODUCTION_SCALE
+        else
+            worker_proc_scale=1
+        fi
+    fi
+    heroku ps:type $proc_type
+    heroku ps:scale web=$web_proc_scale
+    heroku ps:scale worker=$worker_proc_scale
+}
+
 set_bucket_cors() {
     # Set production bucket CORS permissions
     echo
@@ -54,31 +92,6 @@ push_slug() {
     heroku git:remote -a $app
 }
 
-lite_scale() {
-    # Scale application for production-lite environment
-    echo
-    echo "Scaling application for production-lite environment"
-    postgres_plan=hobby-dev
-    redis_plan=hobby-dev
-    proc_type=free
-    web_proc_scale=1
-    if [ $WORKER = True ]; then
-        worker_proc_scale=1
-    else
-        worker_proc_scale=1
-    fi
-    scale
-}
-
-scale() {
-    # Scale application
-    heroku addons:add heroku-postgresql:$postgres_plan
-    heroku addons:add heroku-redis:$redis_plan
-    heroku ps:type $proc_type
-    heroku ps:scale web=$web_proc_scale
-    heroku ps:scale worker=$worker_proc_scale
-}
-
 cmd__production() {
     # Convert to production environment
     # upgrade addons and scale dynos
@@ -89,25 +102,10 @@ cmd__production() {
     echo "Confirm the application name below to proceed"
     echo
     heroku addons:destroy heroku-postgresql
-    heroku addons:destroy heroku-redis  
-    production_scale
-    python3 $DIR/hlk.py export CURRENT_ENV=production
-}
-
-production_scale() {
-    echo
-    echo "Scaling application for production environment"
-    postgres_plan=standard-0
-    proc_type=standard-1x
-    web_proc_scale=3
-    if [ $WORKER = True ]; then
-        redis_plan=premium-1
-        worker_proc_scale=3
-    else
-        redis_plan=hobby-dev
-        worker_proc_scale=1
-    fi
+    heroku addons:destroy heroku-redis
+    create_addons
     scale
+    python3 $DIR/hlk.py export CURRENT_ENV=production
 }
 
 cmd__update() {
@@ -137,18 +135,18 @@ modify_worker() {
         echo "Creating worker"
         if [ $CURRENT_ENV = production ]; then
             heroku addons:destroy heroku-redis
-            heroku addons:add heroku-redis:premium-1
-            heroku ps:scale worker=3
+            heroku addons:add heroku-redis:$REDIS_PRODUCTION_PLAN
+            heroku ps:scale worker=$WORKER_PRODUCTION_SCALE
         else
             heroku ps:scale worker=1
         fi
     else
-        echo "Destroying worker"
+        echo "Scaling down worker"
         if [ $CURRENT_ENV = production ]; then
             heroku addons:destroy heroku-redis
             heroku addons:add heroku-redis:hobby-dev
         fi
-        heroku ps:scale worker=0
+        heroku ps:scale worker=1
     fi
 }
 
