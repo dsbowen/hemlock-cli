@@ -1,41 +1,58 @@
 #!/bin/bash
 
-# Directory of current sh file (and config and default env files)
+# File directory
 DIR=`dirname $0`
 
-hlk__config() {
-    # Set configuration variable
-    local assignment=$1
-    python3 $DIR/update_yaml.py $DIR/config.yaml $assignment
+cmd__export() {
+    # Set environment variables
+    modify_env export
 }
 
-hlk__export() {
-    # Set environment variable
-    local assignment=$1
-    local local_env=$2
-    local prod_env=$3
-    local default=$4
-    if [ $local_env = 1 ]; then
-        if [ $default = 1 ]; then
-            yaml_path=$DIR/local-env.yaml
-        else
-            yaml_path=env/local-env.yaml
-        fi
-        python3 $DIR/update_yaml.py $yaml_path $assignment
+cmd__unset() {
+    # Unset environment variable
+    modify_env unset
+}
+
+modify_env() {
+    # Modify environment variables
+    # modify local and production project variables by default
+    operation=$1
+    if [ $config = False ] && [ $local = False ] && [ $prod = False ]; then
+        local=True prod=True
     fi
-    if [ $prod_env = 1 ]; then
-        if [ $default = 1 ]; then
-            yaml_path=$DIR/production-env.yaml
-        else
-            yaml_path=env/production-env.yaml
-        fi
-        python3 $DIR/update_yaml.py $yaml_path $assignment
+    if [ $config = True ]; then
+        python3 $DIR/update_yaml.py $DIR/config.yaml $operation
+    fi
+    if [ $local = True ]; then
+        modify_local_env
+    fi
+    if [ $prod = True ]; then
+        modify_prod_env
     fi
 }
 
-hlk__init() {
+modify_local_env() {
+    # Modify local environmetn variables
+    if [ $default = True ]; then
+        yaml_path=$DIR/local-env.yaml
+    else
+        yaml_path=env/local-env.yaml
+    fi
+    python3 $DIR/update_yaml.py $yaml_path $operation
+}
+
+modify_prod_env() {
+    # Modify production environment variables
+    if [ $default = True ]; then
+        yaml_path=$DIR/production-env.yaml
+    else
+        yaml_path=env/production-env.yaml
+    fi
+    python3 $DIR/update_yaml.py $yaml_path $operation
+}
+
+cmd__init() {
     # Initialize Hemlock project
-    project=$1
     echo "Initializing Hemlock project"
     export `python3 $DIR/export_yaml.py $DIR/config.yaml`
     create_gcloud_project
@@ -106,40 +123,39 @@ export_env_variables() {
     # Export project environment variables
     echo
     echo "Exporting environment variables"
-    hlk__export FLASK_APP=app 1 0 0
-    hlk__export \
-        GOOGLE_APPLICATION_CREDENTIALS=env/gcp-credentials.json 1 1 0
-    hlk__export BUCKET=$local_bucket 1 0 0
-    hlk__export BUCKET=$bucket 0 1 0
+    python3 $DIR/hlk.py export FLASK_APP=app
+    python3 $DIR/hlk.py export \
+        GOOGLE_APPLICATION_CREDENTIALS=env/gcp-credentials.json
+    python3 $DIR/hlk.py export BUCKET=$local_bucket --local
+    python3 $DIR/hlk.py export BUCKET=$bucket --prod
 }
 
-hlk__install() {
+cmd__install() {
     # Install Python package
     pip3 install -U "$@"
     python3 $DIR/update_requirements.py "$@"
 }
 
-hlk__shell() {
+cmd__shell() {
     # Run Hemlock shell
     export `python3 $DIR/export_yaml.py env/local-env.yaml`
     flask shell
 }
 
-hlk__run() {
+cmd__run() {
     # Run Hemlock app locally
     export `python3 $DIR/export_yaml.py env/local-env.yaml`
     python3 app.py
 }
 
-hlk__rq() {
+cmd__rq() {
     # Run Hemlock Redis Queue locally
     export `python3 $DIR/export_yaml.py env/local-env.yaml`
     rq worker hemlock-task-queue
 }
 
-hlk__deploy() {
+cmd__deploy() {
     # Deploy application
-    app=$1
     export `python3 $DIR/export_yaml.py env/production-env.yaml`
     verify_current_env local
     echo "Deploying algorithm"
@@ -147,7 +163,7 @@ hlk__deploy() {
     set_bucket_cors
     push_slug
     lite_scale
-    hlk__export CURRENT_ENV=production-lite 1 1 0
+    python3 $DIR/hlk.py export CURRENT_ENV=production-lite
 }
 
 verify_current_env() {
@@ -167,7 +183,6 @@ create_app() {
     heroku apps:create $app
     heroku config:set `python3 $DIR/export_yaml.py env/production-env.yaml`
     heroku buildpacks:add heroku/python
-    # heroku buildpacks:add $WKHTMLTOPDF_BUILDPACK_URL
     heroku buildpacks:add $GOOGLE_CHROME_BUILDPACK_URL
     heroku buildpacks:add $CHROMEDRIVER_BUILDPACK_URL
 }
@@ -200,7 +215,7 @@ lite_scale() {
     redis_plan=hobby-dev
     proc_type=free
     web_proc_scale=1
-    if [ $WORKER = 1 ]; then
+    if [ $WORKER = True ]; then
         worker_proc_scale=1
     else
         worker_proc_scale=1
@@ -217,7 +232,7 @@ scale() {
     heroku ps:scale worker=$worker_proc_scale
 }
 
-hlk__production() {
+cmd__production() {
     # Convert to production environment
     # upgrade addons and scale dynos
     export `python3 $DIR/export_yaml.py env/production-env.yaml`
@@ -229,7 +244,7 @@ hlk__production() {
     heroku addons:destroy heroku-postgresql
     heroku addons:destroy heroku-redis  
     production_scale
-    hlk__export CURRENT_ENV=production 1 1 0
+    python3 $DIR/hlk.py export CURRENT_ENV=production
 }
 
 production_scale() {
@@ -238,7 +253,7 @@ production_scale() {
     postgres_plan=standard-0
     proc_type=standard-1x
     web_proc_scale=3
-    if [ $WORKER = 1 ]; then
+    if [ $WORKER = True ]; then
         redis_plan=premium-1
         worker_proc_scale=3
     else
@@ -248,7 +263,7 @@ production_scale() {
     scale
 }
 
-hlk__update() {
+cmd__update() {
     # Update application
     echo "Updating application"
     heroku config:set `python3 $DIR/export_yaml.py env/production-env.yaml`
@@ -257,21 +272,21 @@ hlk__update() {
     git push heroku master
 }
 
-hlk__worker() {
+cmd__worker() {
     # Turn worker on or off
-    worker=$1
+    worker=$on
     export `python3 $DIR/export_yaml.py env/production-env.yaml`
     if [ $CURRENT_ENV = local ] || [ $worker = $WORKER ]; then
-        hlk__export WORKER=$worker 1 1 0
+        python3 $DIR/hlk.py export WORKER=$worker
         exit 0
     fi
     modify_worker
-    hlk__export WORKER=$worker 1 1 0
+    python3 $DIR/hlk.py export WORKER=$worker
 }
 
 modify_worker() {
     # Modify worker for current application
-    if [ $worker = 1 ]; then
+    if [ $worker = True ]; then
         echo "Creating worker"
         if [ $CURRENT_ENV = production ]; then
             heroku addons:destroy heroku-redis
@@ -290,7 +305,7 @@ modify_worker() {
     fi
 }
 
-hlk__destroy() {
+cmd__destroy() {
     # Destroy applicaiton
     echo "Preparing to destroy application"
     echo
@@ -301,13 +316,13 @@ hlk__destroy() {
     echo
     echo "Destroying application"
     heroku apps:destroy
-    hlk__export CURRENT_ENV=local 1 1 0
+    python3 $DIR/hlk.py export CURRENT_ENV=local
 }
 
 hlk() {
     local cmd=$1
     shift
-    "hlk__$cmd" "$@"
+    "cmd__$cmd" "$@"
 }
 
 hlk "$@"
