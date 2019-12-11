@@ -105,6 +105,24 @@ def rq():
     """Run Hemlock Redis Queue locally"""
     call(['sh', SH_FILE, 'rq'])
 
+@click.command()
+@click.option(
+    '--local/--prod', default=True,
+    help='Debug in a local or production(-lite) environment'
+)
+@click.option(
+    '--num-batches', '-b', default=1,
+    help='Number of AI participant batches'
+)
+@click.option(
+    '--batch-size', '-s', default=1,
+    help='Size of AI participant batches'
+)
+@export_args
+def debug(local, num_batches, batch_size):
+    """Run debugger"""
+    call(['sh', SH_FILE, 'debug'])
+
 """4. Deploy"""
 @click.command()
 @click.argument('app')
@@ -142,6 +160,7 @@ hlk.add_command(install)
 hlk.add_command(shell)
 hlk.add_command(run)
 hlk.add_command(rq)
+hlk.add_command(debug)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)

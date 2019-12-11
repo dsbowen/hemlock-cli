@@ -3,7 +3,7 @@
 cmd__install() {
     # Install Python package
     pip3 install -U "$@"
-    python3 $DIR/install/update_requirements.py "$@"
+    python3 $DIR/content/update_requirements.py "$@"
 }
 
 cmd__shell() {
@@ -22,4 +22,15 @@ cmd__rq() {
     # Run Hemlock Redis Queue locally
     export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
     rq worker hemlock-task-queue
+}
+
+cmd__debug() {
+    # Run debugger
+    export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
+    code="from hemlock.debug import AIParticipant, main; main($num_batches, $batch_size)"
+    if [ $local = True ]; then
+        python3 -c"$code"
+    else
+        heroku run python -c"$code"
+    fi
 }

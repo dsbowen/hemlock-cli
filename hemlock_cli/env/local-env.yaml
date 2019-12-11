@@ -1,2 +1,3 @@
 CURRENT_ENV: local
+URL_ROOT: http://localhost:5000
 WORKER: 'False'
