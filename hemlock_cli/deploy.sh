@@ -28,8 +28,7 @@ create_app() {
     echo
     echo "Creating application"
     heroku apps:create $app
-    URL_ROOT=https://$app.herokuapp.com
-    ORIGIN=http://$app.herokuapp.com
+    URL_ROOT=http://$app.herokuapp.com
     python3 $DIR/hlk.py export URL_ROOT=$URL_ROOT --prod
     python3 $DIR/hlk.py export CURRENT_ENV=production-lite
     heroku config:set `python3 $DIR/env/export_yaml.py env/production-env.yaml`
@@ -79,8 +78,8 @@ set_bucket_cors() {
     # Set production bucket CORS permissions
     echo
     echo "Setting CORS permissions for production bucket"
-    echo "Enabling bucket $BUCKET CORS permissions for origin $ORIGIN"
-    python3 $DIR/gcloud/create_cors.py $ORIGIN
+    echo "Enabling bucket $BUCKET CORS permissions for origin $URL_ROOT"
+    python3 $DIR/gcloud/create_cors.py $URL_ROOT
     gsutil cors set cors.json gs://$BUCKET
 }
 

@@ -96,7 +96,12 @@ def shell():
     call(['sh', SH_FILE, 'shell'])
 
 @click.command()
-def run():
+@click.option(
+    '--debug', is_flag=True,
+    help='Run the application in debug mode'
+)
+@export_args
+def run(debug):
     """Run Hemlock locally"""
     call(['sh', SH_FILE, 'run'])
 

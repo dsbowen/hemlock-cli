@@ -15,7 +15,7 @@ cmd__shell() {
 cmd__run() {
     # Run Hemlock app locally
     export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
-    python3 app.py
+    python3 app.py $debug
 }
 
 cmd__rq() {
@@ -26,10 +26,10 @@ cmd__rq() {
 
 cmd__debug() {
     # Run debugger
-    export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
     code="from hemlock.debug import AIParticipant, main; \\
         main($num_batches, $batch_size)"
     if [ $local = True ]; then
+        export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
         python3 -c"$code"
     else
         heroku run python -c"$code"
