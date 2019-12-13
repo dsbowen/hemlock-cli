@@ -26,8 +26,8 @@ cmd__rq() {
 
 cmd__debug() {
     # Run debugger
-    code="from hemlock.debug import AIParticipant, main; \\
-        main($num_batches, $batch_size)"
+    code="from hemlock.debug import AIParticipant, debug; \\
+        debug($num_batches, $batch_size)"
     if [ $local = True ]; then
         export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
         python3 -c"$code"
