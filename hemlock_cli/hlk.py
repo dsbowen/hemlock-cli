@@ -1,10 +1,9 @@
 """Hemlock command line interface
 
 Commands are categorized as:
-1. Environment: modify environment variables
-2. Initialization: initialize a new Hemlock project
-3. Content: modify the project content
-4. Deploy: commands related to deployment
+1. Initialization: initialize a new Hemlock project and utilities
+2. Content: modify the project content
+3. Deploy: commands related to deployment
 """
 
 from functools import wraps
@@ -28,62 +27,33 @@ def export_args(func):
 def hlk():
     pass
 
-"""1. Environment"""
-@click.command()
-@click.argument('assignments', nargs=-1)
-@click.option(
-    '--config', '-c', is_flag=True,
-    help='Set configuration variable'
-)
-@click.option(
-    '--local', '-l', is_flag=True,
-    help='Set local environment variable'
-)
-@click.option(
-    '--prod', '-p', is_flag=True,
-    help='Set production environment variable'
-)
-@click.option(
-    '--default', '-d', is_flag=True,
-    help='Set default environment variable'
-)
-@export_args
-def export(**kwargs):
-    """Set an environment variable"""
-    call(['sh', SH_FILE, 'export'])
-
-@click.command()
-@click.argument('vars', nargs=-1)
-@click.option(
-    '--config', '-c', is_flag=True,
-    help='Unset configuration variable'
-)
-@click.option(
-    '--local', '-l', is_flag=True,
-    help='Unset local environment variable'
-)
-@click.option(
-    '--prod', '-p', is_flag=True,
-    help='Unset production environment variable'
-)
-@click.option(
-    '--default', '-d', is_flag=True,
-    help='Unset default environment variable'
-)
-@export_args
-def unset(**kwargs):
-    """Unset an environment variable"""
-    call(['sh', SH_FILE, 'unset'])
-
-"""2. Initialization"""
+"""1. Initialization"""
 @click.command()
 @click.argument('project')
+@click.option(
+    '-r', '--repo', default='https://github.com/dsbowen/hemlock-template.git',
+    help='Existing project repository'
+)
 @export_args
 def init(project):
     """Initialize Hemlock project"""
     call(['sh', SH_FILE, 'init'])
 
-"""3. Content"""
+@click.command()
+def tutorial():
+    """Initialize tutorial"""
+    os.environ['project'] = 'hemlock-tutorial'
+    os.environ['repo'] = 'https://github.com/dsbowen/hemlock-tutorial.git'
+    call(['sh', SH_FILE, 'init'])
+
+@click.command('gcloud-bucket')
+@click.argument('gcloud_billing_account')
+@export_args
+def gcloud_bucket(gcloud_billing_account):
+    """Create google project and bucket"""
+    call(['sh', SH_FILE, 'gcloud_bucket'])
+
+"""2. Content"""
 @click.command()
 @click.argument('pkg_names', nargs=-1)
 def install(pkg_names):
@@ -128,7 +98,7 @@ def debug(local, num_batches, batch_size):
     """Run debugger"""
     call(['sh', SH_FILE, 'debug'])
 
-"""4. Deploy"""
+"""3. Deploy"""
 @click.command()
 @click.argument('app')
 @export_args
@@ -147,20 +117,13 @@ def production():
     call(['sh', SH_FILE, 'production'])
 
 @click.command()
-@click.option('--on/--off', default=True)
-@export_args
-def worker(on):
-    """Turn worker on or off"""
-    call(['sh', SH_FILE, 'worker'])
-
-@click.command()
 def destroy():
     """Destroy application"""
     call(['sh', SH_FILE, 'destroy'])
 
-hlk.add_command(export)
-hlk.add_command(unset)
 hlk.add_command(init)
+hlk.add_command(tutorial)
+hlk.add_command(gcloud_bucket)
 hlk.add_command(install)
 hlk.add_command(shell)
 hlk.add_command(run)
@@ -169,7 +132,6 @@ hlk.add_command(debug)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)
-hlk.add_command(worker)
 hlk.add_command(destroy)
 
 if __name__ == '__main__':

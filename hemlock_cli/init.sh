@@ -3,49 +3,31 @@
 cmd__init() {
     # Initialize Hemlock project
     echo "Initializing Hemlock project"
-    export `python3 $DIR/env/export_yaml.py $DIR/env/config.yaml`
-    create_gcloud_project
-    clone_hemlock_template
-    copy_env_files
-    create_gcloud_service_account
-    create_gcloud_buckets
-    export_env_variables
-}
-
-create_gcloud_project() {
-    # Create gcloud project associated with Hemlock project
     echo
-    echo "Creating gcloud project"
-    project_id=`python3 $DIR/gcloud/gen_id.py $project`
-    gcloud projects create $project_id --name $project
-    gcloud alpha billing projects link $project_id \
-        --billing-account $GCLOUD_BILLING_ACCOUNT
-}
-
-clone_hemlock_template() {
-    # Clone Hemlock template and set up hemlock-venv
-    echo
-    echo "Cloning Hemlock template from $HEMLOCK_TEMPLATE_URL"
-    git clone $HEMLOCK_TEMPLATE_URL $project
+    echo "Cloning Hemlock template from $repo"
+    git clone $repo $project
     cd $project
-    git remote rm origin
+    git remove rm origin
     echo "Creating virtual environment"
     python3 -m venv hemlock-venv
     echo "Installing local requirements"
     pip3 install -r local-requirements.txt
 }
 
-copy_env_files() {
-    # Copy environment files to the project directory
+cmd__gcloud_bucket() {
+    # Create gcloud project associated with Hemlock project
     echo
-    echo "Copying environment files to project directory"
-    mkdir env
-    cd env
-    echo "  $DIR/env/local-env.yaml --> env/local-env.yaml"
-    cp $DIR/env/local-env.yaml .
-    echo "  $DIR/env/production-env.yaml --> env/production-env.yaml"
-    cp $DIR/env/production-env.yaml .
-    cd ..
+    echo "Creating gcloud project"
+    project=${PWD##*/}
+    project_id=`python3 $DIR/gcloud/gen_id.py $project`
+    gcloud projects create $project_id --name $project
+    gcloud alpha billing projects link $project_id \
+        --billing-account $gcloud_billing_account
+    create_gcloud_service_account
+    create_gcloud_buckets
+    python3 $DIR/env/update_yaml.py env/local-env.yaml BUCKET $local_bucket
+    python3 $DIR/env/update_yaml.py env/production-env.yaml BUCKET $bucket
+    python3 $DIR/env/update_yaml.py env/production-scale.yaml USE_BUCKET 1
 }
 
 create_gcloud_service_account() {
@@ -73,15 +55,4 @@ create_gcloud_buckets() {
     bucket=`python3 $DIR/gcloud/gen_id.py $project-bucket`
     echo "  Making production bucket $bucket"
     gsutil mb -p $project_id gs://$bucket
-}
-
-export_env_variables() {
-    # Export project environment variables
-    echo
-    echo "Exporting environment variables"
-    python3 $DIR/hlk.py export FLASK_APP=app
-    python3 $DIR/hlk.py export \
-        GOOGLE_APPLICATION_CREDENTIALS=env/gcp-credentials.json
-    python3 $DIR/hlk.py export BUCKET=$local_bucket --local
-    python3 $DIR/hlk.py export BUCKET=$bucket --prod
 }

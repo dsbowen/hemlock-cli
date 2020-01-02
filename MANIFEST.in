@@ -1,2 +1,2 @@
-include hemlock_cli/hlk.sh
-include hemlock_cli/*.yaml
+include hemlock_cli/*.sh
+include hemlock_cli/gcloud/cors.json
