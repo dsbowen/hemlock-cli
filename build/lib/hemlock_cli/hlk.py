@@ -35,7 +35,7 @@ def hlk():
     help='Existing project repository'
 )
 @export_args
-def init(project):
+def init(project, repo):
     """Initialize Hemlock project"""
     call(['sh', SH_FILE, 'init'])
 

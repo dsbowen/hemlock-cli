@@ -1,6 +1,7 @@
 """Hemlock command line interface
 
 Commands are categorized as:
+0. Setup: install recommended software for Ubuntu on WSL
 1. Initialization: initialize a new Hemlock project and utilities
 2. Content: modify the project content
 3. Deploy: commands related to deployment
@@ -27,6 +28,29 @@ def export_args(func):
 def hlk():
     pass
 
+"""0. Setup"""
+@click.command()
+@click.option(
+    '--vscode', is_flag=True,
+    help='Install Visual Studio Code'
+)
+@click.option(
+    '--heroku-cli', is_flag=True,
+    help='Install Heroku command line interface'
+)
+@click.option(
+    '--git', is_flag=True,
+    help='Install git'
+)
+@click.option(
+    '--chrome', is_flag=True,
+    help='Install google-chrome and chromedriver'
+)
+@export_args
+def setup(vscode, heroku_cli, git, chrome):
+    """Install recommended software"""
+    call(['sh', SH_FILE, 'setup'])
+
 """1. Initialization"""
 @click.command()
 @click.argument('project')
@@ -35,7 +59,7 @@ def hlk():
     help='Existing project repository'
 )
 @export_args
-def init(project):
+def init(project, repo):
     """Initialize Hemlock project"""
     call(['sh', SH_FILE, 'init'])
 
@@ -121,6 +145,7 @@ def destroy():
     """Destroy application"""
     call(['sh', SH_FILE, 'destroy'])
 
+hlk.add_command(setup)
 hlk.add_command(init)
 hlk.add_command(tutorial)
 hlk.add_command(gcloud_bucket)
