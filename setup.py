@@ -4,8 +4,8 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setuptools.setup(
-    name='hemlock-cli-dsbowen',
-    version='0.0.8',
+    name='hemlock-cli',
+    version='0.0.5',
     author='Dillon Bowen',
     author_email='dsbowen@wharton.upenn.edu',
     description='Command line interface for Hemlock projects',
@@ -19,11 +19,11 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ],
     python_requires='>=3.6',
-    # install_requires=[
-    #     'click==7.0',
-    # ],
+    install_requires=[
+        'click==7.0',
+    ],
     entry_points='''
         [console_scripts]
-        hlk=hemlock_cli.hlk:hlk
+        hlk=hemlock_cli:hlk
     '''
 )
