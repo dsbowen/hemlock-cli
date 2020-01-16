@@ -2,23 +2,24 @@
 
 cmd__setup() {
     get_winhome
-    if [ $vscode = 'True' ]; then {
+    utils
+    if [[ $vscode = "True" ]]; then {
         vscode 
     }
     fi
-    if [ $heroku_cli = 'True' ]; then {
+    if [[ $heroku_cli = "True" ]]; then {
         heroku_cli
     }
     fi
-    if [ $git = 'True' ]; then {
+    if [[ $git = "True" ]]; then {
         git_setup
     }
     fi
-    if [ $chrome = 'True' ]; then {
+    if [[ $chrome = "True" ]]; then {
         chrome
     }
     fi
-    if [ $cloud_sdk = 'True' ]; then {
+    if [[ $cloud_sdk = "True" ]]; then {
         cloud_sdk
     }
     fi
@@ -40,6 +41,13 @@ get_winhome() {
     fi
 }
 
+utils() {
+    # apt install other Hemlock utilities
+    sudo apt install -f -y python3-venv
+    sudo apt install -f -y redis-server
+    sudo service redis-server start
+}
+
 # vscode() {
 #     echo
 #     echo "Installing Visual Studio Code"
@@ -50,7 +58,6 @@ get_winhome() {
 vscode() {
     echo
     echo "Installing Visual Studio Code"
-    echo "Follow the setup.exe instructions."
     wget -O $WINHOME/vscode-setup.exe https://aka.ms/win32-x64-user-stable
     $WINHOME/vscode-setup.exe
 }
@@ -99,5 +106,4 @@ cloud_sdk() {
     wget -O cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
     mv cloud-sdk-setup.exe $WINHOME
     $WINHOME/cloud-sdk-setup.exe
-    gcloud components install alpha
 }

@@ -56,7 +56,7 @@ def hlk(ctx):
 @export_args
 def setup(vscode, heroku_cli, git, chrome, cloud_sdk):
     """Install recommended software"""
-    call(['sh', SH_FILE, 'setup'])
+    call(['sudo', '-E', SH_FILE, 'setup'])
 
 """1. Initialization"""
 @click.command()
