@@ -12,7 +12,7 @@ from subprocess import call
 import click
 import os
 
-__version__ = '0.0.3'
+__version__ = '0.0.4'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')

@@ -2,6 +2,7 @@
 
 # File directory
 DIR=`dirname $0`
+. $DIR/setup.sh
 . $DIR/init.sh
 . $DIR/content.sh
 . $DIR/deploy.sh
