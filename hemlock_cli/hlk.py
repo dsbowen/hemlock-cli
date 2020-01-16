@@ -12,6 +12,8 @@ from subprocess import call
 import click
 import os
 
+__version__ = '0.0.3'
+
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
 
@@ -19,13 +21,14 @@ def export_args(func):
     """Update environment variables with bash arguments"""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        env = {key: str(val) for key, val in kwargs.items()}
-        os.environ.update(env)
+        os.environ.update({key: str(val) for key, val in kwargs.items()})
         return func(*args, **kwargs)
     return wrapper
 
 @click.group()
-def hlk():
+@click.version_option(__version__)
+@click.pass_context
+def hlk(ctx):
     pass
 
 """0. Setup"""
@@ -46,8 +49,12 @@ def hlk():
     '--chrome', is_flag=True,
     help='Install google-chrome and chromedriver'
 )
+@click.option(
+    '--cloud-sdk', is_flag=True,
+    help='Install cloud-sdk'
+)
 @export_args
-def setup(vscode, heroku_cli, git, chrome):
+def setup(vscode, heroku_cli, git, chrome, cloud_sdk):
     """Install recommended software"""
     call(['sh', SH_FILE, 'setup'])
 
@@ -74,7 +81,7 @@ def tutorial():
 @click.argument('gcloud_billing_account')
 @export_args
 def gcloud_bucket(gcloud_billing_account):
-    """Create google project and bucket"""
+    """Create Google Cloud project and bucket"""
     call(['sh', SH_FILE, 'gcloud_bucket'])
 
 """2. Content"""
@@ -96,7 +103,7 @@ def shell():
 )
 @export_args
 def run(debug):
-    """Run Hemlock locally"""
+    """Run Hemlock project locally"""
     call(['sh', SH_FILE, 'run'])
 
 @click.command()

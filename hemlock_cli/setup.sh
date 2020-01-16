@@ -1,6 +1,7 @@
 # Install recommended software
 
 cmd__setup() {
+    get_winhome
     if [ $vscode = 'True' ]; then {
         vscode 
     }
@@ -16,13 +17,42 @@ cmd__setup() {
     if [ $chrome = 'True' ]; then {
         chrome
     }
+    fi
+    if [ $cloud_sdk = 'True' ]; then {
+        cloud_sdk
+    }
+    fi
 }
+
+get_winhome() {
+    echo "Enter your Windows username"
+    read username
+    echo "Confirm Windows username"
+    read confirm
+    if [ $username != $confirm ]; then {
+        echo "Usernames do not match"
+        echo
+        get_winhome
+    }
+    else {
+        export WINHOME=/mnt/c/users/$username
+    }
+    fi
+}
+
+# vscode() {
+#     echo
+#     echo "Installing Visual Studio Code"
+#     wget -O vscode.deb https://go.microsoft.com/fwlink/?LinkID=760868
+#     apt install -f -y ./vscode.deb
+# }
 
 vscode() {
     echo
     echo "Installing Visual Studio Code"
-    wget -O vscode.deb https://code.visualstudio.com/docs/?dv=linux64_deb
-    apt install -f -y ./vscode.deb
+    echo "Follow the setup.exe instructions."
+    wget -O $WINHOME/vscode-setup.exe https://aka.ms/win32-x64-user-stable
+    $WINHOME/vscode-setup.exe
 }
 
 heroku_cli() {
@@ -34,31 +64,40 @@ heroku_cli() {
 
 git_setup() {
     echo
-    echo "Installing git"
+    echo "Installing Git"
     apt install -f -y git
     echo
     echo "If you do not have a github account, go to https://github.com to create one now"
     echo "Enter git username"
     read username
     git config --global user.name $username
-    echo "Enter git email"
+    echo "Enter email associated with git account"
     read email
     git config --global user.email $email
 }
 
 chrome() {
     echo
-    echo "Installing google-chrome and chromedriver"
+    echo "Installing Google Chrome and Chromedriver"
+    # Google Chrome
     wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
     apt install -f -y ./google-chrome-stable_current_amd64.deb
+    # Chromedriver
     wget https://chromedriver.storage.googleapis.com/79.0.3945.36/chromedriver_win32.zip
     apt install -f -y unzip
     unzip chromedriver_win32.zip
-    echo "About to store chromedriver in Windows user directory"
-    echo "Please enter your Windows username to continue"
-    read username
-    WINHOME=/mnt/c/users/$username
     mkdir $WINHOME/webdrivers
     mv chromedriver.exe $WINHOME/webdrivers/chromedriver
-    apt install -f -y gedit
+    python3 $DIR/setup/add_to_path.py $WINHOME/webdrivers
+}
+
+cloud_sdk() {
+    echo
+    echo "Installing Cloud SDK"
+    echo "Create a Google Cloud Platform project, if you do not have one already, at https://console.cloud.google.com/cloud-resource-manager"
+    echo "Press any key to continue"
+    wget -O cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
+    mv cloud-sdk-setup.exe $WINHOME
+    $WINHOME/cloud-sdk-setup.exe
+    gcloud components install alpha
 }
