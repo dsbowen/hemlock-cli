@@ -70,6 +70,9 @@ push_slug() {
     fi
     git commit -m "deploying survey"
     git push heroku master
+    if [ $USE_BUCKET != 0 ]; then
+        git reset env/gcp-credentials.json
+    fi
     heroku git:remote -a $app
 }
 
