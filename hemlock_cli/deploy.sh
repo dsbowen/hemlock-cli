@@ -8,9 +8,10 @@ cmd__deploy() {
     create_app
     create_addons
     if [ $USE_BUCKET != 0 ]; then
-        set_bucket_cors
+        # set_bucket_cors
     fi
     push_slug
+    heroku git:remote -a $app
     scale
 }
 
@@ -33,8 +34,6 @@ create_app() {
     heroku apps:create $app
     URL_ROOT=http://$app.herokuapp.com
     python3 $DIR/env/update_yaml.py env/production-env.yaml URL_ROOT $URL_ROOT
-    heroku config:set \
-        `python3 $DIR/env/export_yaml.py env/production-env.yaml`
     heroku buildpacks:add heroku/python
     heroku buildpacks:add https://github.com/heroku/heroku-buildpack-chromedriver
     heroku buildpacks:add https://github.com/heroku/heroku-buildpack-google-chrome
@@ -64,16 +63,15 @@ push_slug() {
     # Push Heroku slug
     echo
     echo "Pushing Heroku slug"
+    heroku config:set \
+        `python3 $DIR/env/export_yaml.py env/production-env.yaml`
     git add .
     if [ $USE_BUCKET != 0 ]; then
         git add -f env/gcp-credentials.json
     fi
     git commit -m "deploying survey"
-    git push heroku master
-    if [ $USE_BUCKET != 0 ]; then
-        git reset env/gcp-credentials.json
-    fi
-    heroku git:remote -a $app
+    git push -f heroku master
+    git reset HEAD^
 }
 
 scale() {
@@ -102,10 +100,11 @@ cmd__production() {
 cmd__update() {
     # Update application
     echo "Updating application"
-    heroku config:set `python3 $DIR/env/export_yaml.py env/production-env.yaml`
-    git add .
-    git commit -m "update"
-    git push heroku master
+    export `python3 $DIR/env/export_yaml.py env/production-scale.yaml`
+    if [ $USE_BUCKET != 0 ]; then
+        # set_bucket_cors
+    fi
+    push_slug
 }
 
 cmd__destroy() {
