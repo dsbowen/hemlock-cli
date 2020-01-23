@@ -7,9 +7,9 @@ cmd__deploy() {
     export_lite_vars
     create_app
     create_addons
-    if [ $USE_BUCKET != 0 ]; then
+    # if [ $USE_BUCKET != 0 ]; then
         # set_bucket_cors
-    fi
+    # fi
     push_slug
     heroku git:remote -a $app
     scale
@@ -101,9 +101,9 @@ cmd__update() {
     # Update application
     echo "Updating application"
     export `python3 $DIR/env/export_yaml.py env/production-scale.yaml`
-    if [ $USE_BUCKET != 0 ]; then
+    # if [ $USE_BUCKET != 0 ]; then
         # set_bucket_cors
-    fi
+    # fi
     push_slug
 }
 
