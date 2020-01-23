@@ -45,10 +45,9 @@ create_addons() {
     echo
     echo "Creating postgres and redis addons"
     heroku addons:add heroku-postgresql:$POSTGRES_PLAN
-    # if [ $WORKER_SCALE != 0 ]; then
-    #     heroku addons:add heroku-redis:$REDIS_PLAN
-    # fi
-    heroku addons:add heroku-redis:$REDIS_PLAN
+    if [ $WORKER_SCALE != 0 ]; then
+        heroku addons:add heroku-redis:$REDIS_PLAN
+    fi
 }
 
 set_bucket_cors() {
@@ -66,6 +65,9 @@ push_slug() {
     echo
     echo "Pushing Heroku slug"
     git add .
+    if [ $USE_BUCKET != 0 ]; then
+        git add -f env/gcp-credentials.json
+    fi
     git commit -m "deploying survey"
     git push heroku master
     heroku git:remote -a $app

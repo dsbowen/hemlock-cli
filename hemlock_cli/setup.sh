@@ -42,9 +42,9 @@ get_winhome() {
 }
 
 utils() {
-    # apt install other Hemlock utilities
-    sudo apt install -f -y python3-venv
-    sudo apt install -f -y redis-server
+    # install other Hemlock utilities
+    apt install -f -y python3-venv
+    apt install -f -y redis-server
     sudo service redis-server start
 }
 
@@ -103,7 +103,6 @@ cloud_sdk() {
     echo "Installing Cloud SDK"
     echo "Create a Google Cloud Platform project, if you do not have one already, at https://console.cloud.google.com/cloud-resource-manager"
     echo "Press any key to continue"
-    wget -O cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
-    mv cloud-sdk-setup.exe $WINHOME
+    wget -O $WINHOME/cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
     $WINHOME/cloud-sdk-setup.exe
 }

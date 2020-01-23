@@ -34,6 +34,10 @@ def hlk(ctx):
 """0. Setup"""
 @click.command()
 @click.option(
+    '--all', is_flag=True,
+    help='Install all recommended software'
+)
+@click.option(
     '--vscode', is_flag=True,
     help='Install Visual Studio Code'
 )
@@ -54,8 +58,10 @@ def hlk(ctx):
     help='Install cloud-sdk'
 )
 @export_args
-def setup(vscode, heroku_cli, git, chrome, cloud_sdk):
+def setup(all, vscode, heroku_cli, git, chrome, cloud_sdk):
     """Install recommended software"""
+    if all:
+        os.environ.update({key: 'True' for key in locals().keys()})
     call(['sudo', '-E', SH_FILE, 'setup'])
 
 """1. Initialization"""
