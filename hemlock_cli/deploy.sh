@@ -3,13 +3,12 @@
 cmd__deploy() {
     # Deploy application
     echo "Deploying algorithm"
+    export `python3 $DIR/env/export_yaml.py env/production-env.yaml`
     export `python3 $DIR/env/export_yaml.py env/production-scale.yaml`
     export_lite_vars
     create_app
     create_addons
-    # if [ $USE_BUCKET != 0 ]; then
-        # set_bucket_cors
-    # fi
+    set_bucket_cors
     push_slug
     heroku git:remote -a $app
     scale
@@ -52,8 +51,11 @@ create_addons() {
 set_bucket_cors() {
     # Set production bucket CORS permissions
     echo
-    echo "Setting CORS permissions for production bucket"
-    echo "Enabling bucket $BUCKET CORS permissions for origin $URL_ROOT"
+    if [ -z "$BUCKET" ]; then
+        echo "No bucket detected"
+        return
+    fi
+    echo "Setting CORS permissions on bucket $BUCKET for origin $URL_ROOT"
     python3 $DIR/gcloud/create_cors.py $URL_ROOT
     gsutil cors set cors.json gs://$BUCKET
     rm cors.json
@@ -66,7 +68,7 @@ push_slug() {
     heroku config:set \
         `python3 $DIR/env/export_yaml.py env/production-env.yaml`
     git add .
-    if [ $USE_BUCKET != 0 ]; then
+    if [ ! -z "$BUCKET" ]; then
         git add -f env/gcp-credentials.json
     fi
     git commit -m "deploying survey"
@@ -100,24 +102,25 @@ cmd__production() {
 cmd__update() {
     # Update application
     echo "Updating application"
-    export `python3 $DIR/env/export_yaml.py env/production-scale.yaml`
-    # if [ $USE_BUCKET != 0 ]; then
-        # set_bucket_cors
-    # fi
+    export `python3 $DIR/env/export_yaml.py env/production-env.yaml`
+    set_bucket_cors
     push_slug
+}
+
+cmd__restart() {
+    # Restart application
+    echo "Restarting application"
+    export `python3 $DIR/env/export_yaml.py env/production-env.yaml`
+    set_bucket_cors
+    heroku restart
 }
 
 cmd__destroy() {
     # Destroy applicaiton
     echo "Preparing to destroy application"
+    python3 $DIR/env/update_yaml.py env/production-env.yaml URL_ROOT ""
     export `python3 $DIR/env/export_yaml.py env/production-env.yaml`
-    if [ $USE_BUCKET != 0 ]; then
-        echo
-        echo "Restricting CORS permissions for production bucket"
-        python3 $DIR/gcloud/create_cors.py ""
-        gsutil cors set cors.json gs://$BUCKET
-        rm cors.json
-    fi
+    set_bucket_cors
     echo
     echo "Destroying application"
     heroku apps:destroy

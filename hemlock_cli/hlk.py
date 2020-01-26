@@ -149,6 +149,11 @@ def update():
     call(['sh', SH_FILE, 'update'])
 
 @click.command()
+def restart():
+    """Restart application"""
+    call(['sh', SH_FILE, 'restart'])
+
+@click.command()
 def production():
     """Convert to production environment"""
     call(['sh', SH_FILE, 'production'])
@@ -170,6 +175,7 @@ hlk.add_command(debug)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)
+hlk.add_command(restart)
 hlk.add_command(destroy)
 
 if __name__ == '__main__':

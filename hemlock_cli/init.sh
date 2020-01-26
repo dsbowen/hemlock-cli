@@ -31,7 +31,6 @@ cmd__gcloud_bucket() {
     python3 $DIR/env/update_yaml.py env/production-env.yaml BUCKET $bucket
     python3 $DIR/env/update_yaml.py env/production-env.yaml \
         GOOGLE_APPLICATION_CREDENTIALS 'env/gcp-credentials.json'
-    python3 $DIR/env/update_yaml.py env/production-scale.yaml USE_BUCKET 1
 }
 
 create_gcloud_service_account() {
