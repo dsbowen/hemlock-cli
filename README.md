@@ -1,4 +1,4 @@
-Hemlock-CLI is a command line tool for [hemlock](https://dsbowen.github.io/hemlock/).
+Hemlock-CLI is the command line tool for [hemlock](https://dsbowen.github.io/hemlock/).
 
 ## Installation
 
@@ -32,8 +32,6 @@ And navigate to <http://localhost:5000/> in your browser.
   date = {2020-07-10},
 }
 ```
-
-## License
 
 ## License
 
