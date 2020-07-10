@@ -1,29 +1,42 @@
-# Hemlock-CLI
+Hemlock-CLI is a command line tool for [hemlock](https://dsbowen.github.io/hemlock/).
 
-Hemlock-CLI is a command line tool for the [Hemlock](dsbowen.github.io/hemlock) survey creation package.
+## Installation
 
-## Basic use
-
-The following commands will initialize a new Hemlock project, deploy the survey in a 'production-lite' environment, then scale it to a full production environment.
-
-```
-$ hlk init my-project
-$ hlk deploy my-app
-$ hlk production
+```bash
+$ pip install hemlock-cli
 ```
 
-Other commands allow programmers to:
-1. Run a Hemlock app or shell locally.
-2. Run the Hemlock debugging tool in local and production environments.
-3. Create and associate Google storage with a Hemlock project.
-4. Run a local Redis Queue for a Hemlock app.
+## Quickstart
 
-## Documentation
+Initialize a hemlock project with:
 
-You can find the latest documentation at [dsbowen.github.io/hemlock](dsbowen.github.io/hemlock]).
+```bash
+$ hlk init <my-project-name>
+```
+
+Run the hello world app locally:
+
+```bash
+$ hlk serve
+```
+
+And navigate to <http://localhost:5000/> in your browser.
+
+## Citation
+
+```
+@software{bowen2020hemlock-cli,
+  author = {Dillon Bowen},
+  title = {Hemlock},
+  url = {https://dsbowen.github.io/hemlock/},
+  date = {2020-07-10},
+}
+```
 
 ## License
 
-Hemlock was created first and foremost as a free, open-source tool for academic and non-profit research. I aim to obtain a license permitting unlimited free use for legitimate academic and non-profit research by February 2020.
+## License
 
-Until I obtain this license, I require that all Hemlock users obtain written permission from its copyright holder, Dillon Bowen. Any use without written permission from the copyright holder is strictly prohibited.
+Users must cite this package in any publications which use it.
+
+It is licensed with the [Hemlock Research License](https://github.com/dsbowen/hemlock/blob/master/LICENSE). The license permits free use for academic research, and requires written permission from hemlock's author, Dillon Bowen, for commercial use.

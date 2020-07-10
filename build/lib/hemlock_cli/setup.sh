@@ -2,23 +2,28 @@
 
 cmd__setup() {
     get_winhome
-    if [ $vscode = 'True' ]; then {
+    utils
+    if [[ $vscode = True ]]; then {
         vscode 
     }
     fi
-    if [ $heroku_cli = 'True' ]; then {
+    if [[ $heroku_cli = True ]]; then {
         heroku_cli
     }
     fi
-    if [ $git = 'True' ]; then {
+    if [[ $git = True ]]; then {
         git_setup
     }
     fi
-    if [ $chrome = 'True' ]; then {
+    if [[ $chrome = True ]]; then {
         chrome
     }
     fi
-    if [ $cloud_sdk = 'True' ]; then {
+    if [[ $chromedriver = True ]]; then {
+        chromedriver
+    }
+    fi
+    if [[ $cloud_sdk = True ]]; then {
         cloud_sdk
     }
     fi
@@ -40,6 +45,13 @@ get_winhome() {
     fi
 }
 
+utils() {
+    # install other Hemlock utilities
+    apt install -f -y python3-venv
+    apt install -f -y redis-server
+    sudo service redis-server start
+}
+
 # vscode() {
 #     echo
 #     echo "Installing Visual Studio Code"
@@ -50,7 +62,6 @@ get_winhome() {
 vscode() {
     echo
     echo "Installing Visual Studio Code"
-    echo "Follow the setup.exe instructions."
     wget -O $WINHOME/vscode-setup.exe https://aka.ms/win32-x64-user-stable
     $WINHOME/vscode-setup.exe
 }
@@ -59,6 +70,9 @@ heroku_cli() {
     echo
     echo "Installing Heroku-CLI"
     curl https://cli-assets.heroku.com/install.sh | sh
+    echo
+    echo "Opening Heroku login page"
+    echo "  NOTE: You may have to open this page manually"
     heroku login
 }
 
@@ -77,18 +91,26 @@ git_setup() {
 }
 
 chrome() {
+    # set chrome as the default browser; WSL only
+    python3 $DIR/add_bashrc.py \
+        "export BROWSER=\"/mnt/c/program files (x86)/google/chrome/application/chrome.exe\""
+}
+
+chromedriver() {
     echo
-    echo "Installing Google Chrome and Chromedriver"
-    # Google Chrome
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    apt install -f -y ./google-chrome-stable_current_amd64.deb
-    # Chromedriver
-    wget https://chromedriver.storage.googleapis.com/79.0.3945.36/chromedriver_win32.zip
+    echo "Installing Chromedriver"
+    if [ ! -d $WINHOME/webdrivers ]
+    then
+        # add chromedriver to path
+        mkdir $WINHOME/webdrivers
+        python3 $DIR/add_bashrc.py \
+            "export PATH=\"$WINHOME/webdrivers:\$PATH\""  
+    fi
+    wget https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
     apt install -f -y unzip
     unzip chromedriver_win32.zip
-    mkdir $WINHOME/webdrivers
+    rm chromedriver_win32.zip
     mv chromedriver.exe $WINHOME/webdrivers/chromedriver
-    python3 $DIR/setup/add_to_path.py $WINHOME/webdrivers
 }
 
 cloud_sdk() {
@@ -96,8 +118,6 @@ cloud_sdk() {
     echo "Installing Cloud SDK"
     echo "Create a Google Cloud Platform project, if you do not have one already, at https://console.cloud.google.com/cloud-resource-manager"
     echo "Press any key to continue"
-    wget -O cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
-    mv cloud-sdk-setup.exe $WINHOME
+    wget -O $WINHOME/cloud-sdk-setup.exe https://dl.google.com/dl/cloudsdk/channels/rapid/GoogleCloudSDKInstaller.exe
     $WINHOME/cloud-sdk-setup.exe
-    gcloud components install alpha
 }

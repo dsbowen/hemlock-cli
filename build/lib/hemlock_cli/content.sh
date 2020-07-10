@@ -6,26 +6,17 @@ cmd__install() {
     python3 $DIR/content/update_requirements.py "$@"
 }
 
-set_local_env() {
-    # Set local environment variables
-    export `python3 $DIR/env/export_yaml.py env/local-env.yaml`
-}
-
-cmd__shell() {
-    # Run Hemlock shell
-    set_local_env
-    flask shell
-}
-
-cmd__run() {
+cmd__serve() {
     # Run Hemlock app locally
-    set_local_env
-    python3 app.py $debug
+    echo "Prepare to get served."
+    echo
+    export_env
+    python3 app.py
 }
 
 cmd__rq() {
     # Run Hemlock Redis Queue locally
-    set_local_env
+    export_env
     rq worker hemlock-task-queue
 }
 
@@ -33,10 +24,15 @@ cmd__debug() {
     # Run debugger
     code="from hemlock.debug import AIParticipant, debug; \\
         debug($num_batches, $batch_size)"
-    if [ $local = True ]; then
-        set_local_env
-        python3 -c"$code"
-    else
+    if [ $prod = True ]; then
         heroku run python -c"$code"
+    else
+        export_env
+        python3 -c"$code"
     fi
+}
+
+export_env() {
+    # Export local environment variables
+    export `python3 $DIR/env/export_yml.py env/local-env.yml`
 }

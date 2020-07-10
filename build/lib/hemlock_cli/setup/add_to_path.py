@@ -9,5 +9,5 @@ import sys
 
 profile_path = os.path.join(os.environ.get('HOME'), '.bashrc')
 profile = open(profile_path, 'a')
-profile.write('\nexport PATH=$PATH:'+sys.argv[1])
+profile.write('\nexport PATH="{}:$PATH"'.format(sys.argv[1]))
 profile.close()

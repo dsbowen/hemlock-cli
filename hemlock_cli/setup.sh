@@ -3,23 +3,27 @@
 cmd__setup() {
     get_winhome
     utils
-    if [[ $vscode = "True" ]]; then {
+    if [[ $vscode = True ]]; then {
         vscode 
     }
     fi
-    if [[ $heroku_cli = "True" ]]; then {
+    if [[ $heroku_cli = True ]]; then {
         heroku_cli
     }
     fi
-    if [[ $git = "True" ]]; then {
+    if [[ $git = True ]]; then {
         git_setup
     }
     fi
-    if [[ $chrome = "True" ]]; then {
+    if [[ $chrome = True ]]; then {
         chrome
     }
     fi
-    if [[ $cloud_sdk = "True" ]]; then {
+    if [[ $chromedriver = True ]]; then {
+        chromedriver
+    }
+    fi
+    if [[ $cloud_sdk = True ]]; then {
         cloud_sdk
     }
     fi
@@ -66,6 +70,9 @@ heroku_cli() {
     echo
     echo "Installing Heroku-CLI"
     curl https://cli-assets.heroku.com/install.sh | sh
+    echo
+    echo "Opening Heroku login page"
+    echo "  NOTE: You may have to open this page manually"
     heroku login
 }
 
@@ -84,18 +91,26 @@ git_setup() {
 }
 
 chrome() {
+    # set chrome as the default browser; WSL only
+    python3 $DIR/add_bashrc.py \
+        "export BROWSER=\"/mnt/c/program files (x86)/google/chrome/application/chrome.exe\""
+}
+
+chromedriver() {
     echo
-    echo "Installing Google Chrome and Chromedriver"
-    # Google Chrome
-    wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-    apt install -f -y ./google-chrome-stable_current_amd64.deb
-    # Chromedriver
-    wget https://chromedriver.storage.googleapis.com/79.0.3945.36/chromedriver_win32.zip
+    echo "Installing Chromedriver"
+    if [ ! -d $WINHOME/webdrivers ]
+    then
+        # add chromedriver to path
+        mkdir $WINHOME/webdrivers
+        python3 $DIR/add_bashrc.py \
+            "export PATH=\"$WINHOME/webdrivers:\$PATH\""  
+    fi
+    wget https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
     apt install -f -y unzip
     unzip chromedriver_win32.zip
-    mkdir $WINHOME/webdrivers
+    rm chromedriver_win32.zip
     mv chromedriver.exe $WINHOME/webdrivers/chromedriver
-    python3 $DIR/setup/add_to_path.py $WINHOME/webdrivers
 }
 
 cloud_sdk() {

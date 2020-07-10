@@ -5,13 +5,13 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='hemlock-cli',
-    version='0.0.5',
+    version='0.0.7',
     author='Dillon Bowen',
     author_email='dsbowen@wharton.upenn.edu',
-    description='Command line interface for Hemlock projects',
+    description='Command line interface for hemlock projects',
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/dsbowen/hemlock-cli",
+    url="https://dsbowen.github.io/hemlock",
     packages=setuptools.find_packages(),
     include_package_data=True,
     classifiers=[
@@ -20,7 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'click==7.0',
+        'click>=7.0',
     ],
     entry_points='''
         [console_scripts]

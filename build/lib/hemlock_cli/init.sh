@@ -10,8 +10,6 @@ cmd__init() {
     git remote rm origin
     echo "Creating virtual environment"
     python3 -m venv hemlock-venv
-    echo "Installing local requirements"
-    pip3 install -r local-requirements.txt
 }
 
 cmd__gcloud_bucket() {
@@ -25,13 +23,12 @@ cmd__gcloud_bucket() {
         --billing-account $gcloud_billing_account
     create_gcloud_service_account
     create_gcloud_buckets
-    python3 $DIR/env/update_yaml.py env/local-env.yaml BUCKET $local_bucket
-    python3 $DIR/env/update_yaml.py env/local-env.yaml \
+    python3 $DIR/env/update_yml.py env/local-env.yml BUCKET $local_bucket
+    python3 $DIR/env/update_yml.py env/local-env.yml \
         GOOGLE_APPLICATION_CREDENTIALS 'env/gcp-credentials.json'
-    python3 $DIR/env/update_yaml.py env/production-env.yaml BUCKET $bucket
-    python3 $DIR/env/update_yaml.py env/production-env.yaml \
+    python3 $DIR/env/update_yml.py env/production-env.yml BUCKET $bucket
+    python3 $DIR/env/update_yml.py env/production-env.yml \
         GOOGLE_APPLICATION_CREDENTIALS 'env/gcp-credentials.json'
-    python3 $DIR/env/update_yaml.py env/production-scale.yaml USE_BUCKET 1
 }
 
 create_gcloud_service_account() {

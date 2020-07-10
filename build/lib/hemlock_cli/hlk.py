@@ -7,12 +7,14 @@ Commands are categorized as:
 3. Deploy: commands related to deployment
 """
 
+import click
+
+import os
 from functools import wraps
 from subprocess import call
-import click
-import os
+from os import environ
 
-__version__ = '0.0.5'
+__version__ = '0.0.7'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -21,7 +23,7 @@ def export_args(func):
     """Update environment variables with bash arguments"""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        os.environ.update({key: str(val) for key, val in kwargs.items()})
+        environ.update({key: str(val) for key, val in kwargs.items()})
         return func(*args, **kwargs)
     return wrapper
 
@@ -33,6 +35,11 @@ def hlk(ctx):
 
 """0. Setup"""
 @click.command()
+@click.argument('OS')
+@click.option(
+    '--all', is_flag=True,
+    help='Install all recommended software'
+)
 @click.option(
     '--vscode', is_flag=True,
     help='Install Visual Studio Code'
@@ -47,16 +54,35 @@ def hlk(ctx):
 )
 @click.option(
     '--chrome', is_flag=True,
-    help='Install google-chrome and chromedriver'
+    help='Set chrome as your default browser (WSL only)'
+)
+@click.option(
+    '--chromedriver', is_flag=True,
+    help='Install chromedriver'
 )
 @click.option(
     '--cloud-sdk', is_flag=True,
     help='Install cloud-sdk'
 )
 @export_args
-def setup(vscode, heroku_cli, git, chrome, cloud_sdk):
+def setup(os, all, vscode, heroku_cli, git, chrome, chromedriver, cloud_sdk):
     """Install recommended software"""
-    call(['sh', SH_FILE, 'setup'])
+    if os not in ('win','mac','linux'):
+        raise click.BadParameter('OS must be win, mac, or linux')
+    if os != 'win':
+        raise click.BadParameter('Hemlock setup for mac and linux coming soon')
+    if all:
+        environ.update({
+            key: 'True' for key in [
+                'vscode', 
+                'heroku_cli', 
+                'git', 
+                'chrome', 
+                'chromedriver', 
+                'cloud_sdk',
+            ]
+        })
+    call(['sudo', '-E', SH_FILE, 'setup'])
 
 """1. Initialization"""
 @click.command()
@@ -73,8 +99,8 @@ def init(project, repo):
 @click.command()
 def tutorial():
     """Initialize tutorial"""
-    os.environ['project'] = 'hemlock-tutorial'
-    os.environ['repo'] = 'https://github.com/dsbowen/hemlock-tutorial.git'
+    environ['project'] = 'hemlock-tutorial'
+    environ['repo'] = 'https://github.com/dsbowen/hemlock-tutorial.git'
     call(['sh', SH_FILE, 'init'])
 
 @click.command('gcloud-bucket')
@@ -92,19 +118,9 @@ def install(pkg_names):
     call(['sh', SH_FILE, 'install', *pkg_names])
 
 @click.command()
-def shell():
-    """Run Hemlock shell"""
-    call(['sh', SH_FILE, 'shell'])
-
-@click.command()
-@click.option(
-    '--debug', is_flag=True,
-    help='Run the application in debug mode'
-)
-@export_args
-def run(debug):
+def serve():
     """Run Hemlock project locally"""
-    call(['sh', SH_FILE, 'run'])
+    call(['sh', SH_FILE, 'serve'])
 
 @click.command()
 def rq():
@@ -113,8 +129,8 @@ def rq():
 
 @click.command()
 @click.option(
-    '--local/--prod', default=True,
-    help='Debug in a local or production(-lite) environment'
+    '--prod', is_flag=True,
+    help='Debug in the production(-lite) environment on heroku'
 )
 @click.option(
     '--num-batches', '-b', default=1,
@@ -125,7 +141,7 @@ def rq():
     help='Size of AI participant batches'
 )
 @export_args
-def debug(local, num_batches, batch_size):
+def debug(prod, num_batches, batch_size):
     """Run debugger"""
     call(['sh', SH_FILE, 'debug'])
 
@@ -143,6 +159,11 @@ def update():
     call(['sh', SH_FILE, 'update'])
 
 @click.command()
+def restart():
+    """Restart application"""
+    call(['sh', SH_FILE, 'restart'])
+
+@click.command()
 def production():
     """Convert to production environment"""
     call(['sh', SH_FILE, 'production'])
@@ -157,13 +178,13 @@ hlk.add_command(init)
 hlk.add_command(tutorial)
 hlk.add_command(gcloud_bucket)
 hlk.add_command(install)
-hlk.add_command(shell)
-hlk.add_command(run)
+hlk.add_command(serve)
 hlk.add_command(rq)
 hlk.add_command(debug)
 hlk.add_command(deploy)
 hlk.add_command(production)
 hlk.add_command(update)
+hlk.add_command(restart)
 hlk.add_command(destroy)
 
 if __name__ == '__main__':
