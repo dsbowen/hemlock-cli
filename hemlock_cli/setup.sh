@@ -27,6 +27,8 @@ cmd__setup() {
         cloud_sdk
     }
     fi
+    echo
+    echo "Installation complete. Close and re-open your terminal."
 }
 
 get_winhome() {

@@ -12,7 +12,6 @@ import click
 import os
 from functools import wraps
 from subprocess import call
-from os import environ
 
 __version__ = '0.0.7'
 
@@ -23,7 +22,7 @@ def export_args(func):
     """Update environment variables with bash arguments"""
     @wraps(func)
     def wrapper(*args, **kwargs):
-        environ.update({key: str(val) for key, val in kwargs.items()})
+        os.environ.update({key: str(val) for key, val in kwargs.items()})
         return func(*args, **kwargs)
     return wrapper
 
@@ -36,14 +35,6 @@ def hlk(ctx):
 """0. Setup"""
 @click.command()
 @click.argument('OS')
-@click.option(
-    '--all', is_flag=True,
-    help='Install all recommended software'
-)
-@click.option(
-    '--vscode', is_flag=True,
-    help='Install Visual Studio Code'
-)
 @click.option(
     '--heroku-cli', is_flag=True,
     help='Install Heroku command line interface'
@@ -65,23 +56,13 @@ def hlk(ctx):
     help='Install cloud-sdk'
 )
 @export_args
-def setup(os, all, vscode, heroku_cli, git, chrome, chromedriver, cloud_sdk):
+def setup(os, heroku_cli, git, chrome, chromedriver, cloud_sdk):
     """Install recommended software"""
-    if os not in ('win','mac','linux'):
-        raise click.BadParameter('OS must be win, mac, or linux')
-    if os != 'win':
+    return
+    if os not in ('win','wsl','mac','linux'):
+        raise click.BadParameter('OS must be win, wsl, mac, or linux')
+    if os not in ('win', 'wsl'):
         raise click.BadParameter('Hemlock setup for mac and linux coming soon')
-    if all:
-        environ.update({
-            key: 'True' for key in [
-                'vscode', 
-                'heroku_cli', 
-                'git', 
-                'chrome', 
-                'chromedriver', 
-                'cloud_sdk',
-            ]
-        })
     call(['sudo', '-E', SH_FILE, 'setup'])
 
 """1. Initialization"""
@@ -94,13 +75,6 @@ def setup(os, all, vscode, heroku_cli, git, chrome, chromedriver, cloud_sdk):
 @export_args
 def init(project, repo):
     """Initialize Hemlock project"""
-    call(['sh', SH_FILE, 'init'])
-
-@click.command()
-def tutorial():
-    """Initialize tutorial"""
-    environ['project'] = 'hemlock-tutorial'
-    environ['repo'] = 'https://github.com/dsbowen/hemlock-tutorial.git'
     call(['sh', SH_FILE, 'init'])
 
 @click.command('gcloud-bucket')
@@ -175,7 +149,6 @@ def destroy():
 
 hlk.add_command(setup)
 hlk.add_command(init)
-hlk.add_command(tutorial)
 hlk.add_command(gcloud_bucket)
 hlk.add_command(install)
 hlk.add_command(serve)
