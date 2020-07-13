@@ -2,7 +2,7 @@
 
 Commands are categorized as:
 0. Setup: install recommended software for Ubuntu on WSL
-1. Initialization: initialize a new Hemlock project and utilities
+1. Initialization: initialize a new hemlock project and utilities
 2. Content: modify the project content
 3. Deploy: commands related to deployment
 """
@@ -18,14 +18,6 @@ __version__ = '0.0.7'
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
 
-def export_args(func):
-    """Update environment variables with bash arguments"""
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        os.environ.update({key: str(val) for key, val in kwargs.items()})
-        return func(*args, **kwargs)
-    return wrapper
-
 @click.group()
 @click.version_option(__version__)
 @click.pass_context
@@ -36,34 +28,32 @@ def hlk(ctx):
 @click.command()
 @click.argument('OS')
 @click.option(
-    '--heroku-cli', is_flag=True,
-    help='Install Heroku command line interface'
-)
-@click.option(
     '--git', is_flag=True,
     help='Install git'
 )
 @click.option(
     '--chrome', is_flag=True,
-    help='Set chrome as your default browser (WSL only)'
+    help='Set BROWSER environment variable pointing to chrome (WSL only)'
 )
 @click.option(
     '--chromedriver', is_flag=True,
     help='Install chromedriver'
 )
 @click.option(
-    '--cloud-sdk', is_flag=True,
-    help='Install cloud-sdk'
+    '--heroku-cli', is_flag=True,
+    help='Install heroku command line interface'
 )
-@export_args
-def setup(os, heroku_cli, git, chrome, chromedriver, cloud_sdk):
+def setup(os, git, chrome, chromedriver, heroku_cli):
     """Install recommended software"""
-    return
     if os not in ('win','wsl','mac','linux'):
         raise click.BadParameter('OS must be win, wsl, mac, or linux')
     if os not in ('win', 'wsl'):
         raise click.BadParameter('Hemlock setup for mac and linux coming soon')
-    call(['sudo', '-E', SH_FILE, 'setup'])
+    args = (str(arg) for arg in (os, git, chrome, chromedriver, heroku_cli))
+    if os == 'win':
+        call(['sh', SH_FILE, 'setup', *args])
+    elif os == 'wsl':
+        call(['sudo', '-E', SH_FILE, 'setup', *args])
 
 """1. Initialization"""
 @click.command()
@@ -72,17 +62,15 @@ def setup(os, heroku_cli, git, chrome, chromedriver, cloud_sdk):
     '-r', '--repo', default='https://github.com/dsbowen/hemlock-template.git',
     help='Existing project repository'
 )
-@export_args
 def init(project, repo):
     """Initialize Hemlock project"""
-    call(['sh', SH_FILE, 'init'])
+    call(['sh', SH_FILE, 'init', project, repo])
 
 @click.command('gcloud-bucket')
 @click.argument('gcloud_billing_account')
-@export_args
 def gcloud_bucket(gcloud_billing_account):
     """Create Google Cloud project and bucket"""
-    call(['sh', SH_FILE, 'gcloud_bucket'])
+    call(['sh', SH_FILE, 'gcloud_bucket', gcloud_billing_account])
 
 """2. Content"""
 @click.command()
@@ -107,25 +95,23 @@ def rq():
     help='Debug in the production(-lite) environment on heroku'
 )
 @click.option(
-    '--num-batches', '-b', default=1,
+    '--n-batches', '-n', default=1,
     help='Number of AI participant batches'
 )
 @click.option(
     '--batch-size', '-s', default=1,
     help='Size of AI participant batches'
 )
-@export_args
-def debug(prod, num_batches, batch_size):
+def debug(prod, n_batches, batch_size):
     """Run debugger"""
-    call(['sh', SH_FILE, 'debug'])
+    call(['sh', SH_FILE, 'debug', prod, n_batches, batch_size])
 
 """3. Deploy"""
 @click.command()
 @click.argument('app')
-@export_args
 def deploy(app):
     """Deploy application"""
-    call(['sh', SH_FILE, 'deploy'])
+    call(['sh', SH_FILE, 'deploy', app])
 
 @click.command()
 def update():

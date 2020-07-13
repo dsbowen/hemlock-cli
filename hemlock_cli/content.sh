@@ -23,8 +23,8 @@ cmd__rq() {
 cmd__debug() {
     # Run debugger
     code="from hemlock.debug import AIParticipant, debug; \\
-        debug($num_batches, $batch_size)"
-    if [ $prod = True ]; then
+        debug($2, $3)"
+    if [ $1 = True ]; then
         heroku run python -c"$code"
     else
         export_env

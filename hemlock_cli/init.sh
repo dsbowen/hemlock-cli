@@ -2,6 +2,8 @@
 
 cmd__init() {
     # Initialize Hemlock project
+    project=$1
+    repo=$2
     echo "Initializing Hemlock project"
     echo
     echo "Cloning Hemlock template from $repo"
