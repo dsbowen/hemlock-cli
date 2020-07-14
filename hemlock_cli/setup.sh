@@ -9,10 +9,9 @@ cmd__setup() {
     if [ $5 = True ]; then heroku_cli_setup; fi
     # if [[ $OS = 'wsl' ]]; then apt install -f -y python3-venv; fi
     # if [[ $2 = True ]]; then git_setup; fi
-    # if [[ $3 = True ]]; then jupyter_setup; fi
     # if [[ $4 = True ]]; then chrome_setup; fi
-    # if [[ $5 = True ]]; then chromedriver_setup; fi
-    # if [[ $6 = True ]]; then heroku_cli_setup; fi
+    # if [[ $4 = True ]]; then chromedriver_setup; fi
+    # if [[ $5 = True ]]; then heroku_cli_setup; fi
     echo
     echo "Installation complete. Close and re-open your terminal."
 }
@@ -60,11 +59,12 @@ chromedriver_setup() {
     if [ ! -d $WINHOME/webdrivers ]; then mkdir $WINHOME/webdrivers; fi
     if [ $OS = win ]; then
         mv chromedriver.exe $WINHOME/webdrivers
-        python3 $DIR/add_bashrc.py \
-            "export PATH=\"$WINHOME/webdrivers:\$PATH\""
     elif [ $OS = wsl ]; then
         # make sure executable is 'chromedriver' not 'chromedriver.exe'
         mv chromedriver.exe $WINHOME/webdrivers/chromedriver
+    fi
+    if [[ "$PATH" != *":$WINHOME/webdrivers:"* ]]; then
+        echo "webdriver not in path"
         python3 $DIR/add_bashrc.py \
             "export PATH=\"$WINHOME/webdrivers:\$PATH\""
     fi
