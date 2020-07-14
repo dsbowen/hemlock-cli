@@ -2,18 +2,12 @@
 
 cmd__setup() {
     export OS=$1
-    if [ $OS = 'wsl' ]; then apt install -f -y python3-venv; fi
     if [ $2 = True ]; then git_setup; fi
     if [ $3 = True ]; then chrome_setup; fi
     if [ $4 = True ]; then chromedriver_setup; fi
     if [ $5 = True ]; then heroku_cli_setup; fi
-    # if [[ $OS = 'wsl' ]]; then apt install -f -y python3-venv; fi
-    # if [[ $2 = True ]]; then git_setup; fi
-    # if [[ $4 = True ]]; then chrome_setup; fi
-    # if [[ $4 = True ]]; then chromedriver_setup; fi
-    # if [[ $5 = True ]]; then heroku_cli_setup; fi
     echo
-    echo "Installation complete. Close and re-open your terminal."
+    echo "Installation complete. You may need to close and re-open your terminal."
 }
 
 redis() {
@@ -42,9 +36,15 @@ git_setup() {
 }
 
 chrome_setup() {
-    # set chrome as the default browser; WSL only
-    python3 $DIR/add_bashrc.py \
-        "export BROWSER=\"/mnt/c/program files (x86)/google/chrome/application/chrome.exe\""
+    # set chrome as the default browser
+    if [ $OS = win ]; then
+        # shouldn't have to do this on win, but it won't hurt
+        python3 $DIR/add_bashrc.py \
+            "export BROWSER=\"/c/program files (x86)/google/chrome/application/chrome.exe\""
+    elif [ $OS = wsl ]; then
+        python3 $DIR/add_bashrc.py \
+            "export BROWSER=\"/mnt/c/program files (x86)/google/chrome/application/chrome.exe\""
+    fi
 }
 
 chromedriver_setup() {
@@ -63,14 +63,17 @@ chromedriver_setup() {
         # make sure executable is 'chromedriver' not 'chromedriver.exe'
         mv chromedriver.exe $WINHOME/webdrivers/chromedriver
     fi
-    if [[ "$PATH" != *":$WINHOME/webdrivers:"* ]]; then
-        echo "webdriver not in path"
+    if [[ ":$PATH:" != *":$WINHOME/webdrivers:"* ]]; then
+        # NOTE: for some reason this doesn't recognize that chromedriver is in path in WSL
+        # works fine in the ubuntu terminal and git bash, but not here
+        # this will add the chromedriver path to the bashrc multiple times
         python3 $DIR/add_bashrc.py \
             "export PATH=\"$WINHOME/webdrivers:\$PATH\""
     fi
 }
 
 get_winhome() {
+    echo 
     echo "Enter your Windows username"
     read username
     echo "Confirm Windows username"

@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.7'
+__version__ = '0.0.8'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')

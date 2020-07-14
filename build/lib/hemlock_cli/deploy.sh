@@ -98,6 +98,7 @@ cmd__production() {
     heroku addons:destroy heroku-redis
     create_addons
     scale
+    heroku certs:auto:enable
 }
 
 cmd__update() {
