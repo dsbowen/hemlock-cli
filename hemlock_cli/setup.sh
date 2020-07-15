@@ -100,7 +100,7 @@ get_winhome() {
 
 get_chromedriver_file() {
     # download and unzip chromedriver file
-    if [ $OS = win] || [ $OS = wsl ]; then
+    if [ $OS = win ] || [ $OS = wsl ]; then
         chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
     elif [ $OS = mac ]; then
         chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_mac64.zip
@@ -115,7 +115,7 @@ get_chromedriver_file() {
 
 heroku_cli_setup() {
     if [ $OS = win ]; then
-        echo "Download the heroku CLI from https://devcenter.heroku.com/articles/heroku-cli"
+        echo "Download heroku-cli from https://devcenter.heroku.com/articles/heroku-cli"
         return
     fi
     echo "Installing Heroku-CLI"
