@@ -1,3 +1,4 @@
+#!/bin/bash
 # Deploy, scale, and destroy project
 
 cmd__deploy() {

@@ -63,13 +63,14 @@ chromedriver_setup() {
         # make sure executable is 'chromedriver' not 'chromedriver.exe'
         mv chromedriver.exe $WINHOME/webdrivers/chromedriver
     fi
-    if [[ ":$PATH:" != *":$WINHOME/webdrivers:"* ]]; then
+    # if [[ ":$PATH:" != *":$WINHOME/webdrivers:"* ]]; then
         # NOTE: for some reason this doesn't recognize that chromedriver is in path in WSL
         # works fine in the ubuntu terminal and git bash, but not here
         # this will add the chromedriver path to the bashrc multiple times
-        python3 $DIR/add_bashrc.py \
-            "export PATH=\"$WINHOME/webdrivers:\$PATH\""
-    fi
+        # also, [[ isn't recognized by git bash
+    python3 $DIR/add_bashrc.py \
+        "export PATH=\"$WINHOME/webdrivers:\$PATH\""
+    # fi
 }
 
 get_winhome() {

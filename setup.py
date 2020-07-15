@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='hemlock-cli',
-    version='0.0.8',
+    version='0.0.9',
     author='Dillon Bowen',
     author_email='dsbowen@wharton.upenn.edu',
     description='Command line interface for hemlock projects',

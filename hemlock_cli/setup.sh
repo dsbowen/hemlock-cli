@@ -1,4 +1,5 @@
 #!/bin/bash
+# Setup for recommended software
 
 cmd__setup() {
     export OS=$1
