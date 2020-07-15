@@ -7,8 +7,6 @@ cmd__setup() {
     if [ $3 = True ]; then chrome_setup; fi
     if [ $4 = True ]; then chromedriver_setup; fi
     if [ $5 = True ]; then heroku_cli_setup; fi
-    echo
-    echo "Installation complete. You may need to close and re-open your terminal."
 }
 
 redis() {
@@ -18,14 +16,16 @@ redis() {
 }
 
 git_setup() {
-    echo
-    if [ $OS = 'win' ]; then
+    if [ $OS = win ]; then
         echo "Download git from https://git-scm.com/download/win"
         return
-    elif [ $OS = 'wsl' ]; then
-        echo "Installing Git"
-        apt install -f -y git
+    elif [ $OS = wsl ] || [ $OS = linux ]; then
+        echo "Find download instructions from https://git-scm.com/download/linux"
+        return
     fi
+    echo "Installing Git"
+    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh
+    brew install git
     echo
     echo "If you do not have a github account, go to https://github.com to create one now"
     echo "Enter git username"
@@ -34,47 +34,57 @@ git_setup() {
     echo "Enter email associated with git account"
     read email
     git config --global user.email $email
+    echo
+    echo "Git installation complete."
 }
 
 chrome_setup() {
     # set chrome as the default browser
+    # should only have to do this on WSL
     if [ $OS = win ]; then
-        # shouldn't have to do this on win, but it won't hurt
-        python3 $DIR/add_bashrc.py \
-            "export BROWSER=\"/c/program files (x86)/google/chrome/application/chrome.exe\""
+        # chrome_exe_path="/c/program files (x86)/google/chrome/application/chrome.exe"
+        echo "This should not be necessary on Windows"
+        return
     elif [ $OS = wsl ]; then
-        python3 $DIR/add_bashrc.py \
-            "export BROWSER=\"/mnt/c/program files (x86)/google/chrome/application/chrome.exe\""
+        chrome_exe_path="/mnt/c/program files (x86)/google/chrome/application/chrome.exe"
+    elif [ $OS = mac ]; then
+        # chrome_exe_path="/applications/google chrome.app/contents/macos/google chrome" 
+        echo "This should not be necessary on Mac"
+        return
+    elif [ $OS = linux ]; then
+        # chrome_exe_path=""
+        echo "This should not be necessary on Linux"
+        return
     fi
+    python3 $DIR/add_bashrc.py \
+        "export BROWSER=\"$chrome_exe_path\""
+    echo
+    echo "BROWSER variable set. Close and re-open your terminal."
 }
 
 chromedriver_setup() {
-    get_winhome
-    echo
     echo "Installing Chromedriver"
-    curl -o chromedriver_win32.zip \
-        https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
-    apt install -f -y unzip
-    unzip chromedriver_win32.zip
-    rm chromedriver_win32.zip
-    if [ ! -d $WINHOME/webdrivers ]; then mkdir $WINHOME/webdrivers; fi
-    if [ $OS = win ]; then
-        mv chromedriver.exe $WINHOME/webdrivers
-    elif [ $OS = wsl ]; then
-        # make sure executable is 'chromedriver' not 'chromedriver.exe'
+    if [ $OS = wsl ]; then get_winhome; fi
+    get_chromedriver_file
+    if [ $OS = wsl ]; then
+        # in WSL, need to install chromedriver in windows home, not WSL home
+        # also need to rename chromedriver.exe to chromedriver
+        if [ ! -d $WINHOME/webdrivers ]; then mkdir $WINHOME/webdrivers; fi
         mv chromedriver.exe $WINHOME/webdrivers/chromedriver
+        python3 $DIR/add_bashrc.py \
+            "export PATH=\"$WINHOME/webdrivers:\$PATH\""
+    else
+        if [ ! -d $HOME/webdrivers ]; then mkdir $HOME/webdrivers; fi
+        mv chromedriver $HOME/webdrivers
+        python3 $DIR/add_bashrc.py \
+            "export PATH=\"$HOME/webdrivers:\$PATH\""
     fi
-    # if [[ ":$PATH:" != *":$WINHOME/webdrivers:"* ]]; then
-        # NOTE: for some reason this doesn't recognize that chromedriver is in path in WSL
-        # works fine in the ubuntu terminal and git bash, but not here
-        # this will add the chromedriver path to the bashrc multiple times
-        # also, [[ isn't recognized by git bash
-    python3 $DIR/add_bashrc.py \
-        "export PATH=\"$WINHOME/webdrivers:\$PATH\""
-    # fi
+    echo
+    echo "Chromedriver setup complete. Close and re-open your terminal."
 }
 
 get_winhome() {
+    # get windows home location for WSL installation
     echo 
     echo "Enter your Windows username"
     read username
@@ -82,28 +92,38 @@ get_winhome() {
     read confirm
     if [ $username != $confirm ]; then
         echo "Usernames do not match"
-        echo
         get_winhome
-    else {
-        if [ $OS = 'win' ]; then
-            export WINHOME=/c/users/$username
-        elif [ $OS = 'wsl' ]; then
-            export WINHOME=/mnt/c/users/$username
-        fi
-    }
+    else
+        export WINHOME=/mnt/c/users/$username
     fi
 }
 
+get_chromedriver_file() {
+    # download and unzip chromedriver file
+    if [ $OS = win] || [ $OS = wsl ]; then
+        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
+    elif [ $OS = mac ]; then
+        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_mac64.zip
+    elif [ $OS = linux ]; then
+        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip
+    fi
+    curl -o chromedriver.zip $chromedriver_url
+    apt install -f -y unzip
+    unzip chromedriver.zip
+    rm chromedriver.zip
+}
+
 heroku_cli_setup() {
-    echo
     if [ $OS = win ]; then
         echo "Download the heroku CLI from https://devcenter.heroku.com/articles/heroku-cli"
         return
-    elif [ $OS = wsl ]; then
-        echo "Installing Heroku-CLI"
-        curl https://cli-assets.heroku.com/install.sh | sh
     fi
+    echo "Installing Heroku-CLI"
+    curl https://cli-assets.heroku.com/install.sh | sh
+    echo
     echo "Opening Heroku login page"
     echo "  NOTE: You may have to open this page manually"
     heroku login
+    echo
+    echo "Heroku-cli setup complete."
 }
