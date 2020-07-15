@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.9'
+__version__ = '0.0.10'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -47,12 +47,10 @@ def setup(os, git, chrome, chromedriver, heroku_cli):
     """Install recommended software"""
     if os not in ('win','wsl','mac','linux'):
         raise click.BadParameter('OS must be win, wsl, mac, or linux')
-    if os not in ('win', 'wsl'):
-        raise click.BadParameter('Hemlock setup for mac and linux coming soon')
     args = (str(arg) for arg in (os, git, chrome, chromedriver, heroku_cli))
     if os == 'win':
         call(['sh', SH_FILE, 'setup', *args])
-    elif os == 'wsl':
+    else:
         call(['sudo', '-E', SH_FILE, 'setup', *args])
 
 """1. Initialization"""

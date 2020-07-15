@@ -1,3 +1,4 @@
+#!/bin/bash
 # Commands used during survey creation
 
 cmd__install() {

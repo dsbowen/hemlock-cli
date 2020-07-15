@@ -1,3 +1,4 @@
+#!/bin/bash
 # Initialize Hemlock project
 
 cmd__init() {
