@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.10'
+__version__ = '0.0.11'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -56,13 +56,14 @@ def setup(os, git, chrome, chromedriver, heroku_cli):
 """1. Initialization"""
 @click.command()
 @click.argument('project')
+@click.argument('github-token')
 @click.option(
     '-r', '--repo', default='https://github.com/dsbowen/hemlock-template.git',
     help='Existing project repository'
 )
-def init(project, repo):
+def init(project, github_token, repo):
     """Initialize Hemlock project"""
-    call(['sh', SH_FILE, 'init', project, repo])
+    call(['sh', SH_FILE, 'init', project, github_token, repo])
 
 @click.command('gcloud-bucket')
 @click.argument('gcloud_billing_account')
@@ -89,8 +90,8 @@ def rq():
 
 @click.command()
 @click.option(
-    '--prod', is_flag=True,
-    help='Debug in the production(-lite) environment on heroku'
+    '--staging', is_flag=True,
+    help='Run the debugger in the staging environment'
 )
 @click.option(
     '--n-batches', '-n', default=1,
@@ -100,16 +101,17 @@ def rq():
     '--batch-size', '-s', default=1,
     help='Size of AI participant batches'
 )
-def debug(prod, n_batches, batch_size):
+def debug(staging, n_batches, batch_size):
     """Run debugger"""
-    call(['sh', SH_FILE, 'debug', prod, n_batches, batch_size])
+    call([
+        'sh', SH_FILE, 'debug', str(staging), str(n_batches), str(batch_size)
+    ])
 
 """3. Deploy"""
 @click.command()
-@click.argument('app')
-def deploy(app):
+def deploy():
     """Deploy application"""
-    call(['sh', SH_FILE, 'deploy', app])
+    call(['sh', SH_FILE, 'deploy'])
 
 @click.command()
 def update():

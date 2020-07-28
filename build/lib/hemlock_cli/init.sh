@@ -4,13 +4,24 @@
 cmd__init() {
     # Initialize Hemlock project
     project=$1
-    repo=$2
+    token=$2
+    repo=$3
     echo "Initializing Hemlock project"
     echo
     echo "Cloning Hemlock template from $repo"
     git clone $repo $project
     cd $project
     git remote rm origin
+    echo
+    echo "Creating new repo"
+    curl -H "Authorization: token $token" https://api.github.com/user/repos \
+        -d '{"name": "'"$project"'", "private": true}'
+    git init
+    git add .
+    git commit -m "first commit"
+    git remote add origin https://github.com/dsbowen/$project.git
+    git push origin master
+    echo
     echo "Creating virtual environment"
     python3 -m venv hemlock-venv
 }

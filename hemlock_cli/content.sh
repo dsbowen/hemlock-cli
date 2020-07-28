@@ -18,7 +18,7 @@ cmd__serve() {
 cmd__rq() {
     # Run Hemlock Redis Queue locally
     export_env
-    rq worker hemlock-task-queue
+    rq worker -u $REDIS_URL hemlock-task-queue
 }
 
 cmd__debug() {
@@ -35,5 +35,5 @@ cmd__debug() {
 
 export_env() {
     # Export local environment variables
-    export `python3 $DIR/env/export_yml.py env/local-env.yml`
+    export `python3 $DIR/env/export_yaml.py env.yaml`
 }
