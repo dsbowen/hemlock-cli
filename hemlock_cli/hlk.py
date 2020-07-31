@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.11'
+__version__ = '0.0.12'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -56,14 +56,17 @@ def setup(os, git, chrome, chromedriver, heroku_cli):
 """1. Initialization"""
 @click.command()
 @click.argument('project')
+@click.argument('github-username')
 @click.argument('github-token')
 @click.option(
     '-r', '--repo', default='https://github.com/dsbowen/hemlock-template.git',
-    help='Existing project repository'
+    help='Template project repository'
 )
-def init(project, github_token, repo):
+def init(project, github_username, github_token, repo):
     """Initialize Hemlock project"""
-    call(['sh', SH_FILE, 'init', project, github_token, repo])
+    call([
+        'sh', SH_FILE, 'init', project, github_username, github_token, repo
+    ])
 
 @click.command('gcloud-bucket')
 @click.argument('gcloud_billing_account')

@@ -3,27 +3,37 @@
 
 cmd__init() {
     # Initialize Hemlock project
-    project=$1
-    token=$2
-    repo=$3
-    echo "Initializing Hemlock project"
+    export project=$1
+    export username=$2
+    export token=$3
+    export template_repo=$4
+    export project_repo=https://github.com/$username/$project.git
+    echo "Initializing hemlock project"
+    clone_template
+    create_repo
     echo
-    echo "Cloning Hemlock template from $repo"
-    git clone $repo $project
+    echo "Creating virtual environment"
+    python3 -m venv hemlock-venv
+}
+
+clone_template() {
+    echo
+    echo "Cloning hemlock template from $template_repo"
+    git clone $template_repo $project
     cd $project
     git remote rm origin
+}
+
+create_repo() {
     echo
-    echo "Creating new repo"
+    echo "Creating new hemlock project repo at $project_repo"
     curl -H "Authorization: token $token" https://api.github.com/user/repos \
         -d '{"name": "'"$project"'", "private": true}'
     git init
     git add .
     git commit -m "first commit"
-    git remote add origin https://github.com/dsbowen/$project.git
+    git remote add origin $project_repo
     git push origin master
-    echo
-    echo "Creating virtual environment"
-    python3 -m venv hemlock-venv
 }
 
 cmd__gcloud_bucket() {
