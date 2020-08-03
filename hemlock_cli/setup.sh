@@ -3,39 +3,15 @@
 
 cmd__setup() {
     export OS=$1
-    if [ $2 = True ]; then git_setup; fi
-    if [ $3 = True ]; then chrome_setup; fi
-    if [ $4 = True ]; then chromedriver_setup; fi
-    if [ $5 = True ]; then heroku_cli_setup; fi
+    if [ $2 = True ]; then chrome_setup; fi
+    if [ $3 = True ]; then chromedriver_setup; fi
+    if [ $4 = True ]; then heroku_cli_setup; fi
 }
 
 redis() {
     # Start redis server
     apt install -f -y redis-server
     sudo service redis-server start
-}
-
-git_setup() {
-    if [ $OS = win ]; then
-        echo "Download git from https://git-scm.com/download/win"
-        return
-    elif [ $OS = wsl ] || [ $OS = linux ]; then
-        echo "Find download instructions from https://git-scm.com/download/linux"
-        return
-    fi
-    echo "Installing Git"
-    curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh
-    brew install git
-    echo
-    echo "If you do not have a github account, go to https://github.com to create one now"
-    echo "Enter git username"
-    read username
-    git config --global user.name $username
-    echo "Enter email associated with git account"
-    read email
-    git config --global user.email $email
-    echo
-    echo "Git installation complete."
 }
 
 chrome_setup() {
@@ -56,7 +32,7 @@ chrome_setup() {
         echo "This should not be necessary on Linux"
         return
     fi
-    python3 $DIR/add_bashrc.py \
+    python3 $DIR/add_profile.py \
         "export BROWSER=\"$chrome_exe_path\""
     echo
     echo "BROWSER variable set. Close and re-open your terminal."
@@ -71,12 +47,12 @@ chromedriver_setup() {
         # also need to rename chromedriver.exe to chromedriver
         if [ ! -d $WINHOME/webdrivers ]; then mkdir $WINHOME/webdrivers; fi
         mv chromedriver.exe $WINHOME/webdrivers/chromedriver
-        python3 $DIR/add_bashrc.py \
+        python3 $DIR/add_profile.py \
             "export PATH=\"$WINHOME/webdrivers:\$PATH\""
     else
         if [ ! -d $HOME/webdrivers ]; then mkdir $HOME/webdrivers; fi
         mv chromedriver $HOME/webdrivers
-        python3 $DIR/add_bashrc.py \
+        python3 $DIR/add_profile.py \
             "export PATH=\"$HOME/webdrivers:\$PATH\""
     fi
     echo
