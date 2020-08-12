@@ -34,6 +34,8 @@ cmd__debug() {
 }
 
 export_env() {
-    # Export local environment variables
+    # Activate virtual environment and export local environment variables
+    [ -d "hemlock-venv/bin" ] && . hemlock-venv/bin/activate
+    [ -d "hemlock-venv/scripts" ] && . hemlock-venv/scripts/activate
     export `python3 $DIR/env/export_yaml.py env.yaml`
 }

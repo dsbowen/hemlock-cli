@@ -11,9 +11,7 @@ cmd__init() {
     echo "Initializing hemlock project"
     clone_template
     create_repo
-    echo
-    echo "Creating virtual environment"
-    python3 -m venv hemlock-venv
+    setup_venv
 }
 
 clone_template() {
@@ -34,6 +32,16 @@ create_repo() {
     git commit -m "first commit"
     git remote add origin $project_repo
     git push origin master
+}
+
+setup_venv() {
+    echo
+    echo "Creating virtual environment"
+    python3 -m venv hemlock-venv
+    python3 -m ipykernel install --user --name $project
+    [ -d "hemlock-venv/bin" ] && . hemlock-venv/bin/activate
+    [ -d "hemlock-venv/scripts" ] && . hemlock-venv/scripts/activate
+    pip3 install -r local-requirements.txt
 }
 
 cmd__gcloud_bucket() {

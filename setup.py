@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='hemlock-cli',
-    version='0.0.13',
+    version='0.0.14',
     author='Dillon Bowen',
     author_email='dsbowen@wharton.upenn.edu',
     description='Command line interface for hemlock projects',
@@ -21,6 +21,7 @@ setuptools.setup(
     python_requires='>=3.6',
     install_requires=[
         'click>=7.0',
+        'ipykernel>=5.3.4'
     ],
     entry_points='''
         [console_scripts]

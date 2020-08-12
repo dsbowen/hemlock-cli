@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.12'
+__version__ = '0.0.14'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -28,10 +28,6 @@ def hlk(ctx):
 @click.command()
 @click.argument('OS')
 @click.option(
-    '--git', is_flag=True,
-    help='Install git'
-)
-@click.option(
     '--chrome', is_flag=True,
     help='Set BROWSER environment variable pointing to chrome (WSL only)'
 )
@@ -43,11 +39,11 @@ def hlk(ctx):
     '--heroku-cli', is_flag=True,
     help='Install heroku command line interface'
 )
-def setup(os, git, chrome, chromedriver, heroku_cli):
+def setup(os, chrome, chromedriver, heroku_cli):
     """Install recommended software"""
-    if os not in ('win','wsl','mac','linux'):
+    if os not in ('win', 'wsl', 'mac', 'linux'):
         raise click.BadParameter('OS must be win, wsl, mac, or linux')
-    args = (str(arg) for arg in (os, git, chrome, chromedriver, heroku_cli))
+    args = (str(arg) for arg in (os, chrome, chromedriver, heroku_cli))
     if os == 'win':
         call(['sh', SH_FILE, 'setup', *args])
     else:
