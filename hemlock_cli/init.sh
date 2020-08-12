@@ -39,9 +39,18 @@ setup_venv() {
     echo "Creating virtual environment"
     python3 -m venv hemlock-venv
     python3 -m ipykernel install --user --name $project
-    [ -d "hemlock-venv/bin" ] && . hemlock-venv/bin/activate
-    [ -d "hemlock-venv/scripts" ] && . hemlock-venv/scripts/activate
-    pip3 install -r local-requirements.txt
+    if [ -d "hemlock-venv/scripts" ]; then 
+        # cannot activate venv from bash unless you change into folder first
+        # this is a strange error (not mine)
+        echo
+        echo "RUN THE FOLLOWING"
+        echo "  $ cd $project"
+        echo "  $ . hemlock-venv/scripts/activate"
+        echo "  $ pip3 install local-requirements.txt"
+    elif [ -d "hemlock-venv/bin" ]; then
+        . hemlock-venv/bin/activate
+        pip3 install -r local-requirements.txt
+    fi
 }
 
 cmd__gcloud_bucket() {
