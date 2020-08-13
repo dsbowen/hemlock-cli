@@ -38,8 +38,8 @@ setup_venv() {
     echo
     echo "Creating virtual environment"
     python3 -m venv hemlock-venv
-    python3 -m ipykernel install --user --name $project
     if [ -d "hemlock-venv/scripts" ]; then 
+        python3 -m ipykernel install --user --name $project
         # cannot activate venv from bash unless you change into folder first
         # this is a strange error (not mine)
         echo
@@ -50,6 +50,9 @@ setup_venv() {
     elif [ -d "hemlock-venv/bin" ]; then
         . hemlock-venv/bin/activate
         pip3 install -r local-requirements.txt
+        # NOTE: on mac, kernel must be installed after venv is activated
+        pip3 install -U ipykernel
+        python3 -m ipykernel install --user --name $project
     fi
 }
 
