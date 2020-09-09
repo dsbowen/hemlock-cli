@@ -140,6 +140,7 @@ def destroy():
 
 hlk.add_command(setup)
 hlk.add_command(init)
+hlk.add_command(setup_venv)
 hlk.add_command(gcloud_bucket)
 hlk.add_command(install)
 hlk.add_command(serve)
