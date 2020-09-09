@@ -77,11 +77,11 @@ get_winhome() {
 get_chromedriver_file() {
     # download and unzip chromedriver file
     if [ $OS = win ] || [ $OS = wsl ]; then
-        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_win32.zip
+        chromedriver_url=https://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_win32.zip
     elif [ $OS = mac ]; then
-        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_mac64.zip
+        chromedriver_url=https://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_mac64.zip
     elif [ $OS = linux ]; then
-        chromedriver_url=https://chromedriver.storage.googleapis.com/83.0.4103.39/chromedriver_linux64.zip
+        chromedriver_url=https://chromedriver.storage.googleapis.com/85.0.4183.87/chromedriver_linux64.zip
     fi
     curl -o chromedriver.zip $chromedriver_url
     apt install -f -y unzip
