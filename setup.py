@@ -20,8 +20,7 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        'click>=7.0',
-        'ipykernel>=5.3.4'
+        'click>=7.0'
     ],
     entry_points='''
         [console_scripts]
