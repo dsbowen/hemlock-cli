@@ -3,6 +3,7 @@
 
 cmd__install() {
     # Install Python package
+    activate_venv
     pip3 install -U "$@"
     python3 $DIR/content/update_requirements.py "$@"
 }
@@ -33,9 +34,14 @@ cmd__debug() {
     fi
 }
 
-export_env() {
+activate_venv() {
     # Activate virtual environment and export local environment variables
     [ -d "hemlock-venv/bin" ] && . hemlock-venv/bin/activate
     [ -d "hemlock-venv/scripts" ] && . hemlock-venv/scripts/activate
+}
+
+export_env() {
+    # Activate venv and export local environment variables
+    activate_venv
     export `python3 $DIR/env/export_yaml.py env.yaml`
 }
