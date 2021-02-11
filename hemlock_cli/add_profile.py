@@ -11,8 +11,8 @@ import sys
 
 # profile files used if none found in root directory
 default_profile_file = {
-    'bash': '.bashrc'
-    'zsh': '.zshrc',
+    'bash': '.bashrc',
+    'zsh': '.zshrc'
 }
 
 # resolution order for rofile files

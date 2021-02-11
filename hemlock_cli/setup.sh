@@ -56,11 +56,11 @@ chromedriver_setup() {
     TO_ADD="export PATH=\"$HOME/webdrivers:\$PATH\""
     if [ -n "$ZSH_VERSION" ]; then
         # add chromedriver to path for zsh profile
-        python3 $DIR/add_profile.py zsh $TO_ADD
+        python3 $DIR/add_profile.py zsh "$TO_ADD"
     fi
     if [ -n "$BASH_VERSION" ]; then
         # add chromedriver to path for bash profile
-        python3 $DIR/add_profile.py bash $TO_ADD
+        python3 $DIR/add_profile.py bash "$TO_ADD"
     fi
     echo
     echo "Chromedriver setup complete"
