@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.16'
+__version__ = '0.0.19'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -78,10 +78,10 @@ def gcloud_bucket(gcloud_billing_account):
 
 """2. Content"""
 @click.command()
-@click.argument('pkg_names', nargs=-1)
-def install(pkg_names):
+@click.argument('packages', nargs=-1)
+def install(packages):
     """Install Python package"""
-    call(['sh', SH_FILE, 'install', *pkg_names])
+    call(['sh', SH_FILE, 'install', *packages])
 
 @click.command()
 def serve():
