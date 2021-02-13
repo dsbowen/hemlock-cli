@@ -53,12 +53,15 @@ setup_venv() {
 }
 
 cmd__setup_venv() {
+    if [ ! -f hemlock-venv ]; then
+        python3 -m venv hemlock-venv
+    fi
     if [ -d "hemlock-venv/scripts" ]; then
         . hemlock-venv/scripts/activate
     elif [ -d "hemlock-venv/bin" ]; then
         . hemlock-venv/bin/activate
     fi
-    pip3 install -r local-requirements.txt
+    python3 -m pip install -r local-requirements.txt
     python3 -m ipykernel install --user --name $1
 }
 

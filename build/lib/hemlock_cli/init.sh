@@ -41,19 +41,28 @@ setup_venv() {
     if [ -d "hemlock-venv/scripts" ]; then 
         python3 -m ipykernel install --user --name $project
         # cannot activate venv from bash unless you change into folder first
+        # from the terminal (cd in bash script doesn't work)
         # this is a strange error (not mine)
         echo
         echo "RUN THE FOLLOWING"
         echo "  $ cd $project"
-        echo "  $ . hemlock-venv/scripts/activate"
-        echo "  $ pip3 install local-requirements.txt"
+        echo "  $ hlk setup-venv $project"
+    elif [ -d "hemlock-venv/bin" ]; then
+        cmd__setup_venv $project
+    fi
+}
+
+cmd__setup_venv() {
+    if [ ! -f hemlock-venv ]; then
+        python3 -m venv hemlock-venv
+    fi
+    if [ -d "hemlock-venv/scripts" ]; then
+        . hemlock-venv/scripts/activate
     elif [ -d "hemlock-venv/bin" ]; then
         . hemlock-venv/bin/activate
-        pip3 install -r local-requirements.txt
-        # NOTE: on mac, kernel must be installed after venv is activated
-        pip3 install -U ipykernel
-        python3 -m ipykernel install --user --name $project
     fi
+    python3 -m pip install -r local-requirements.txt
+    python3 -m ipykernel install --user --name $1
 }
 
 cmd__gcloud_bucket() {

@@ -4,8 +4,8 @@
 cmd__install() {
     # Install Python package
     activate_venv
-    pip3 install -U "$@"
-    python3 $DIR/content/update_requirements.py "$@"
+    python3 -m pip install -U "$@"
+    python3 $DIR/update_requirements.py "$@"
 }
 
 cmd__serve() {

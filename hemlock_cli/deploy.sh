@@ -1,10 +1,6 @@
 #!/bin/bash
 # Deploy, scale, and destroy project
 
-# worker: rq worker -u $REDIS_URL hemlock-task-queue
-
-# hlk serve, etc., exports env.yaml
-
 cmd__deploy() {
     # Deploy application
     echo

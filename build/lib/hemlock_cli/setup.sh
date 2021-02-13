@@ -11,7 +11,7 @@ cmd__setup() {
 redis() {
     # Start redis server
     apt install -f -y redis-server
-    sudo service redis-server start
+    service redis-server start
 }
 
 chrome_setup() {
@@ -22,11 +22,14 @@ chrome_setup() {
     elif [ $OS = wsl ]; then
         # https://www.gregbrisebois.com/posts/chromedriver-in-wsl2/
         apt-get install -f -y curl unzip xvfb libxi6 libgconf-2-4
-        curl https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-        apt install ./google-chrome-stable_current_amd64.deb
+        curl -o google-chrome.deb \
+            https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+        apt install ./google-chrome.deb
+        rm google-chrome.deb
         echo
+        echo "Google chrome setup complete"
         echo "Verify your installation with"
-        echo "$ google-chrome --version"
+        echo "$ google-chrome-stable --version"
     elif [ $OS = mac ]; then
         echo "This should not be necessary on Mac"
     elif [ $OS = linux ]; then
@@ -43,18 +46,26 @@ chromedriver_setup() {
         chown root:root /usr/bin/chromedriver
         chmod +x /usr/bin/chromedriver
         echo
+        echo "Chromedriver setup complete"
         echo "Verify your installation with"
         echo "$ chromedriver --version"
-    else
-        if [ ! -d $HOME/webdrivers ]; then mkdir $HOME/webdrivers; fi
-        mv chromedriver $HOME/webdrivers
-        python3 $DIR/add_profile.py \
-            "export PATH=\"$HOME/webdrivers:\$PATH\""
-        echo
-        echo "Chromedriver setup complete."
-        echo "Close and re-open your terminal, then verify your installation with"
-        echo "$ which chromedriver"
+        return
     fi
+    if [ ! -d $HOME/webdrivers ]; then mkdir $HOME/webdrivers; fi
+    mv chromedriver $HOME/webdrivers
+    TO_ADD="export PATH=\"$HOME/webdrivers:\$PATH\""
+    if [ -n "$ZSH_VERSION" ]; then
+        # add chromedriver to path for zsh profile
+        python3 $DIR/add_profile.py zsh "$TO_ADD"
+    fi
+    if [ -n "$BASH_VERSION" ]; then
+        # add chromedriver to path for bash profile
+        python3 $DIR/add_profile.py bash "$TO_ADD"
+    fi
+    echo
+    echo "Chromedriver setup complete"
+    echo "Close and re-open your terminal, then verify your installation with"
+    echo "$ chromedriver --version"
 }
 
 get_chromedriver_file() {
@@ -83,5 +94,7 @@ heroku_cli_setup() {
     echo "  NOTE: You may have to open this page manually"
     heroku login
     echo
-    echo "Heroku-cli setup complete."
+    echo "Heroku-cli setup complete"
+    echo "Verify your heroku-cli installation with"
+    echo "heroku --version"
 }

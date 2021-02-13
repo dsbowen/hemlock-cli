@@ -13,7 +13,7 @@ import os
 from functools import wraps
 from subprocess import call
 
-__version__ = '0.0.16'
+__version__ = '0.0.19'
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 SH_FILE = os.path.join(DIR, 'hlk.sh')
@@ -64,6 +64,12 @@ def init(project, github_username, github_token, repo):
         'sh', SH_FILE, 'init', project, github_username, github_token, repo
     ])
 
+@click.command('setup-venv')
+@click.argument('name')
+def setup_venv(name):
+    """Setup virtual environment (you should only need to use this on Windows git bash)"""
+    call(['sh', SH_FILE, 'setup_venv', name])
+
 @click.command('gcloud-bucket')
 @click.argument('gcloud_billing_account')
 def gcloud_bucket(gcloud_billing_account):
@@ -72,10 +78,10 @@ def gcloud_bucket(gcloud_billing_account):
 
 """2. Content"""
 @click.command()
-@click.argument('pkg_names', nargs=-1)
-def install(pkg_names):
+@click.argument('packages', nargs=-1)
+def install(packages):
     """Install Python package"""
-    call(['sh', SH_FILE, 'install', *pkg_names])
+    call(['sh', SH_FILE, 'install', *packages])
 
 @click.command()
 def serve():
@@ -134,6 +140,7 @@ def destroy():
 
 hlk.add_command(setup)
 hlk.add_command(init)
+hlk.add_command(setup_venv)
 hlk.add_command(gcloud_bucket)
 hlk.add_command(install)
 hlk.add_command(serve)
