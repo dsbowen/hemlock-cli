@@ -11,7 +11,11 @@ cmd__init() {
     echo "Initializing hemlock project"
     clone_template
     create_repo
-    setup_venv
+    echo
+    echo "RUN THE FOLLOWING TO SETUP YOUR VIRTUAL ENVIRONMENT"
+    echo "  $ cd $project"
+    echo "  $ hlk setup-venv YOUR-OPERATING-SYSTEM"
+    echo "replace YOUR-OPERATING-SYSTEM with win, mac, linux, or wsl"
 }
 
 clone_template() {
@@ -34,35 +38,22 @@ create_repo() {
     git push origin master
 }
 
-setup_venv() {
-    echo
-    echo "Creating virtual environment"
-    python3 -m venv hemlock-venv
-    if [ -d "hemlock-venv/scripts" ]; then 
-        python3 -m ipykernel install --user --name $project
-        # cannot activate venv from bash unless you change into folder first
-        # from the terminal (cd in bash script doesn't work)
-        # this is a strange error (not mine)
-        echo
-        echo "RUN THE FOLLOWING"
-        echo "  $ cd $project"
-        echo "  $ hlk setup-venv $project"
-    elif [ -d "hemlock-venv/bin" ]; then
-        cmd__setup_venv $project
-    fi
-}
-
 cmd__setup_venv() {
-    if [ ! -f hemlock-venv ]; then
-        python3 -m venv hemlock-venv
+    export OS=$1
+    export name=$2
+    if [ -z "$name" ]; then
+        # kernel name is the name of the project folder
+        export name=${PWD##*/}
     fi
-    if [ -d "hemlock-venv/scripts" ]; then
+    if [ $OS = win ]; then
+        py -m venv hemlock-venv
         . hemlock-venv/scripts/activate
-    elif [ -d "hemlock-venv/bin" ]; then
+    else
+        python3 -m venv hemlock-venv
         . hemlock-venv/bin/activate
     fi
     python3 -m pip install -r local-requirements.txt
-    python3 -m ipykernel install --user --name $1
+    python3 -m ipykernel install --user --name $name
 }
 
 cmd__gcloud_bucket() {

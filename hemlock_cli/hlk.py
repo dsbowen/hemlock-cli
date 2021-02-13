@@ -65,10 +65,13 @@ def init(project, github_username, github_token, repo):
     ])
 
 @click.command('setup-venv')
-@click.argument('name')
-def setup_venv(name):
+@click.argument('OS')
+@click.option('-n', '--name', default='', help='Kernel name')
+def setup_venv(os, name):
     """Setup virtual environment (you should only need to use this on Windows git bash)"""
-    call(['sh', SH_FILE, 'setup_venv', name])
+    if os not in ('win', 'wsl', 'mac', 'linux'):
+        raise click.BadParameter('OS must be win, wsl, mac, or linux')
+    call(['sh', SH_FILE, 'setup_venv', os, name])
 
 @click.command('gcloud-bucket')
 @click.argument('gcloud_billing_account')
